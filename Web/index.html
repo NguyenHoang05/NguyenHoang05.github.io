@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Sign up From</title>
+        <!-- Link đến file CSS cho giao diện -->
+    <link rel="stylesheet" href="style.css">
+        <!-- Link đến thư viện icon Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <div class="container">
+                <!-- Form Đăng Nhập -->
+        <div class="form-box login">
+            <form action="#">
+                <h1>Đăng Nhập</h1>
+                <!-- Ô nhập tên đăng nhập -->
+                <div class="input-box">
+                    <input type="text" placeholder="Tên đăng nhập" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                    <!-- Ô nhập mật khẩu -->
+                    <input type="password" placeholder="Mật khẩu" required>
+                    <i class='bx bxs-lock-alt' ></i>
+                </div>
+                <div class="input-box">
+                    <!-- Ô chọn vai trò -->
+                    <select id="roleSelect" required>
+                        <option value="">Chọn vai trò</option>
+                        <option value="student">Sinh viên</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <i class='bx bxs-user-detail'></i>
+                </div>
+                <div class="forgot-link">
+                            <!-- Link quên mật khẩu -->
+                    <a href="#">Quên mật khẩu?</a>
+                </div>
+                                <!-- Nút đăng nhập -->
+                <button type="submit" class="btn">Đăng nhập</button>
+                <p>Đăng nhập bằng phương tiện khác</p>
+                                <!-- Các icon mạng xã hội -->
+                <div class="social-icons">
+                    <a href="#"><i class='bx bxl-google' ></i></a>
+                    <a href="#"><i class='bx bxl-facebook' ></i></a>
+                    <a href="#"><i class='bx bxl-github' ></i></a>
+                    <a href="#"><i class='bx bxl-linkedin' ></i></a>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-box register">
+            <form action="#">
+                        <!-- Form Đăng Ký -->
+                <h1>Đăng ký tài khoản</h1>
+                <div class="input-box">
+                                    <!-- Ô nhập họ tên -->
+                    <input type="text" placeholder="Họ & tên" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                                <!-- Ô nhập tên đăng nhập -->
+                    <input type="text" placeholder="MSSV" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                                    <!-- Ô nhập email -->
+                    <input type="email" placeholder="Email" required>
+                    <i class='bx bxs-envelope' ></i>
+                </div>
+                <div class="input-box">
+                                <!-- Ô nhập ID sinh viên -->
+                    <input type="text" placeholder="ID Sinh viên" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                                    <!-- Ô nhập mật khẩu  -->
+                    <input type="password" placeholder="Mật khẩu" required>
+                    <i class='bx bxs-lock-alt' ></i>
+                </div>
+                 <div class="input-box">
+                    <!-- Ô chọn vai trò -->
+                    <select id="roleSelect" required>
+                        <option value="">Chọn vai trò</option>
+                        <option value="student">Sinh viên</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <i class='bx bxs-user-detail'></i>
+                </div>
+                                <!-- Nút đăng ký-->
+                <button type="submit" class="btn">Đăng ký</button>
+                <p>Hoặc đăng ký với các nền tảng mạng xã hội</p>
+                                <!-- Các icon mạng xã hội -->
+                <div class="social-icons">
+                    <a href="#"><i class='bx bxl-google' ></i></a>
+                    <a href="#"><i class='bx bxl-facebook' ></i></a>
+                    <a href="#"><i class='bx bxl-github' ></i></a>
+                    <a href="#"><i class='bx bxl-linkedin' ></i></a>
+                </div>
+            </form>
+        </div>
+        <!-- Hộp chuyển đổi giữa đăng nhập và đăng ký -->
+
+        <div class="toggle-box">
+                        <!-- Panel bên trái: chuyển sang đăng ký -->
+            <div class="toggle-panel toggle-left">
+                <h1> Trang quản lý thư viện</h1>
+                <p>Bạn chưa có tài khoản?</p>
+                <button class="btn register-btn">Đăng ký</button>
+            </div>
+            <!-- Panel bên phải: chuyển sang đăng nhập -->
+
+            <div class="toggle-panel toggle-right">
+                <h1>Chào mừng bạn trở lại</h1>
+                <p>Bạn đã có tài khoản?</p>
+                <button class="btn login-btn">Đăng nhập</button>
+            </div>
+        </div>
+    </div>
+        <!-- Link đến file JS để xử lý chuyển đổi form -->
+    <script src="main.js"></script>
+</body>
+</html>
