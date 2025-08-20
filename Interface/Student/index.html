@@ -5,6 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interface</title>
     <link rel="stylesheet" href="link.css">
+      <style>
+        /* Nút gọi chatbot (floating) */
+        #chatLauncher {
+          position: fixed;
+          right: 24px;
+          bottom: 24px;
+          width: 90px; 
+          height: 90px;
+          border-radius: 50%;
+          border: none;
+          background: transparent;
+          /* box-shadow: 0 10px 30px rgba(0,0,0,.2); */
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          z-index: 10000;
+          transition: transform .2s ease;
+        }
+        #chatLauncher canvas { 
+          width: 90px; 
+          height: 90px; 
+          background: transparent!important; 
+          border-radius: 50%;
+        }
+        #chatLauncher:hover { transform: translateY(-2px) scale(1.05); }
+      
+        /* Iframe popup */
+        #chatbotIframe {
+            position: fixed;
+            right: 24px;
+            bottom: 100px;
+            width: 380px;
+            height: 600px;
+            border: none;
+            border-radius: 18px;
+            display: none;                 /* mặc định ẩn */
+            z-index: 9999;
+
+            /* Khôi phục khung */
+            background: #fff;              /* có nền trắng */
+            box-shadow: 0 16px 60px rgba(0,0,0,.25); /* thêm bóng để nổi lên */
+            overflow: hidden;              /* tránh tràn nội dung */
+            }
+
+      
+        @media (max-width: 520px) {
+          #chatbotIframe {
+            right: 2.5vw;
+            bottom: 96px;
+            width: 95vw;
+            height: 80vh;
+            border-radius: 14px;
+          }
+          #chatLauncher { 
+            right: 2.5vw; 
+            bottom: 12px; 
+            width: 80px; 
+            height: 80px;
+          }
+          #chatLauncher canvas {
+            width: 80px;
+            height: 80px;
+          }
+        }
+      </style>
 </head>
 
 <body>
@@ -700,6 +765,45 @@
              }
          }
     </script>
+        <!-- Nút gọi chatbot = logo robot động -->
+<button id="chatLauncher" aria-label="Mở trợ lý thư viện">
+    <canvas id="chatLottie"></canvas>
+  </button>
+  
+  <!-- Popup Chatbot: dùng file popup đã tạo -->
+  <iframe id="chatbotIframe"
+          src="/chatbotAI/chatbot-popup.html"
+          allow="microphone"
+          allowtransparency="true"></iframe>
+  
+  <!-- Lottie + toggle -->
+  <script type="module">
+    import { DotLottie } from "https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web/+esm";
+  
+    // 1) Load logo robot động cho nút launcher (robot.json ở thư mục gốc BVD-EMB)
+    const lottie = new DotLottie({
+      canvas: document.getElementById("chatLottie"),
+      src: "../../../robot.json",
+      autoplay: true,
+      loop: true,
+    });
+  
+    // 2) Toggle mở/đóng iframe popup
+    const launcher = document.getElementById("chatLauncher");
+    const frame    = document.getElementById("chatbotIframe");
+    let open = false;
+  
+    launcher.addEventListener("click", () => {
+      open = !open;
+      frame.style.display = open ? "block" : "none";
+    });
+  
+    // 3) Đảm bảo iframe không bị cắt khi cuộn
+    window.addEventListener("scroll", () => {
+      if (open) frame.style.display = "block";
+    });
+  </script>
+  
 </body>
 
 </html>
