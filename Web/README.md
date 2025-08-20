@@ -20,8 +20,8 @@ git commit -m "Cập nhật README.md"
 
 # 7. Đẩy code lên nhánh main của GitHub
 git push -u origin main
----------------------------------------------
-# =>LỆNH ĐẨY LÊN SAU KHI ĐÃ SETUP
+# LƯU Ý NHÉ:
+LỆNH ĐẨY LÊN SAU KHI ĐÃ SETUP
 # git add .
 # git commit -m "ghi nd cập nhật vào đây"
 # git push origin main 
