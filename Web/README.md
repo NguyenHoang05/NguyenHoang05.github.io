@@ -23,5 +23,5 @@ git push -u origin main
 ---------------------------------------------
 # LỆNH ĐẨY LÊN SAU KHI ĐÃ SETUP
 git add .
-git commit -m "Cập nhật mới"
-git push
+git commit -m "ghi nd cập nhật vào đây"
+git push origin main
