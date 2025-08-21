@@ -760,18 +760,50 @@
              }
          }
     </script>
-    <!-- Nút mở chatbot -->
-<button id="chatLauncher" onclick="document.getElementById('chatbotIframe').style.display='block'">
-  <canvas width="90" height="90"></canvas>
+<!-- NÚT CHATBOT LOTTIE (duy nhất) -->
+<button id="chatbot-toggler"
+  style="position:fixed; right:20px; bottom:20px; z-index:9999;
+         background:transparent; border:none; cursor:pointer;">
+  <canvas id="chatbot-lottie-canvas" width="90" height="90"></canvas>
 </button>
 
-<!-- IFRAME chứa chatbot -->
-<iframe
-  id="chatbotIframe"
-  src="../../chatbot/chatbot-popup.html"
-  style="display:none; position:fixed; bottom:100px; right:24px; width:380px; height:600px;
-         border-radius:18px; border:none; box-shadow:0 16px 60px rgba(0,0,0,0.25); z-index:9999;">
+<!-- CHATBOT POPUP -->
+<iframe id="chatbotIframe"
+        src="../../chatbot/chatbot-popup.html"
+        style="display:none; position:fixed; bottom:100px; right:24px;
+               width:380px; height:600px; border-radius:18px; border:none;
+               box-shadow:0 16px 60px rgba(0,0,0,0.25); z-index:9999;">
 </iframe>
+
+<!-- Lottie animation cho nút -->
+<script type="module">
+  import { DotLottie } from "https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web/+esm";
+
+  const dotLottie = new DotLottie({
+    autoplay: true,
+    loop: true,
+    canvas: document.getElementById("chatbot-lottie-canvas"),
+    src: "../../chatbot/robot.json", // đường dẫn tới file robot.json
+  });
+
+  dotLottie.addEventListener('ready', () => {
+    const canvas = document.getElementById("chatbot-lottie-canvas");
+    canvas.style.background = 'transparent';
+    canvas.style.borderRadius = '50%';
+  });
+</script>
+
+<!-- Mở/đóng popup -->
+<script>
+  const toggle = document.getElementById("chatbot-toggler");
+  const iframe = document.getElementById("chatbotIframe");
+
+  toggle.addEventListener("click", () => {
+    const isVisible = iframe.style.display === "block";
+    iframe.style.display = isVisible ? "none" : "block";
+  });
+</script>
+
 
 </body>
 
