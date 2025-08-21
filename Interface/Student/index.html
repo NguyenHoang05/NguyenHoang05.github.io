@@ -5,63 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interface</title>
     <link rel="stylesheet" href="link.css">
- <style>
-  #chatLauncher {
+<style>
+  :root{
+    --chatbot-width: 380px;
+    --chatbot-height: 560px;
+    --chatbot-gap: 8px;     /* khoảng hở giữa khung & icon */
+    --chatbot-edge: 12px;   /* khoảng cách icon tới mép màn hình */
+  }
+
+  /* Nút Lottie (icon) */
+  #chatbot-toggler{
     position: fixed;
-    right: 24px;
-    bottom: 24px;
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    border: none;
+    right: var(--chatbot-edge);
+    bottom: var(--chatbot-edge);
     background: transparent;
-    display: grid;
-    place-items: center;
+    border: 0;
     cursor: pointer;
-    z-index: 10000;
-    transition: transform .2s ease;
+    z-index: 2147483647 !important; /* cao hơn iframe */
   }
-  #chatLauncher canvas {
-    width: 90px;
-    height: 90px;
-    background: transparent !important;
-    border-radius: 50%;
+  #chatbot-toggler canvas{
+    width:90px; height:90px; display:block;
   }
-  #chatLauncher:hover {
-    transform: translateY(-2px) scale(1.05);
-  }
-  #chatbotIframe {
+
+  /* Khung iframe – vị trí sẽ do JS đặt theo icon */
+  #chatbotIframe{
     position: fixed;
-    right: 24px;
-    bottom: 100px;
-    width: 380px;
-    height: 600px;
-    border: none;
-    border-radius: 18px;
-    display: none;
-    z-index: 9999;
-    background: #fff;
-    box-shadow: 0 16px 60px rgba(0,0,0,.25);
+    /* KHÔNG set right/bottom ở đây để tránh xung đột với JS */
+    width: var(--chatbot-width);
+    height: var(--chatbot-height);
+    border: 0;
+    border-radius: 16px;
+    display: none;                        /* mặc định ẩn */
+    background: transparent !important;   /* nền/bóng đặt bên trong popup */
+    box-shadow: none !important;
     overflow: hidden;
+    z-index: 2147483646 !important;       /* thấp hơn nút 1 bậc */
   }
-  @media (max-width: 520px) {
-    #chatbotIframe {
-      right: 2.5vw;
-      bottom: 96px;
-      width: 95vw;
-      height: 80vh;
-      border-radius: 14px;
+
+  /* Mobile */
+  @media (max-width: 520px){
+    :root{
+      --chatbot-width: 95vw;
+      --chatbot-height: 80vh;
+      --chatbot-gap: 10px;
+      --chatbot-edge: 10px;
     }
-    #chatLauncher {
-      right: 2.5vw;
-      bottom: 12px;
-      width: 80px;
-      height: 80px;
+    #chatbot-toggler{
+      right: var(--chatbot-edge);
+      bottom: var(--chatbot-edge);
     }
-    #chatLauncher canvas {
-      width: 80px;
-      height: 80px;
-    }
+  }
+
+  /* Chặn rule chung đè lên button/canvas (nếu có) */
+  #chatbot-toggler, #chatbot-toggler *{
+    background-image: none !important;
+    box-shadow: none !important;
   }
 </style>
 
@@ -760,51 +758,95 @@
              }
          }
     </script>
-<!-- NÚT CHATBOT LOTTIE (duy nhất) -->
+<!-- NÚT CHATBOT -->
 <button id="chatbot-toggler"
-  style="position:fixed; right:20px; bottom:20px; z-index:9999;
+  style="position:fixed; right:20px; bottom:20px; z-index:2147483647;
          background:transparent; border:none; cursor:pointer;">
   <canvas id="chatbot-lottie-canvas" width="90" height="90"></canvas>
 </button>
 
-<!-- CHATBOT POPUP -->
+<!-- POPUP CHATBOT -->
 <iframe id="chatbotIframe"
-        src="../../chatbot/chatbot-popup.html"
-        style="display:none; position:fixed; bottom:100px; right:24px;
+        src="/chatbot/chatbot-popup.html"
+        style="display:none; position:fixed;
                width:380px; height:600px; border-radius:18px; border:none;
-               box-shadow:0 16px 60px rgba(0,0,0,0.25); z-index:9999;">
+               background:transparent; box-shadow:none; z-index:2147483646;">
 </iframe>
 
-<!-- Lottie animation cho nút -->
+<!-- (Khuyến nghị) CSS gọn cho desktop + mobile -->
+<style>
+  :root{
+    --chatbot-gap: 10px;        /* khoảng hở giữa khung & icon */
+    --chatbot-edge: 12px;       /* khoảng cách icon tới mép màn hình */
+    --chatbot-width: 380px;
+    --chatbot-height: 600px;
+  }
+  #chatbot-toggler canvas{ display:block; width:90px; height:90px; }
+  #chatbotIframe{
+    width: var(--chatbot-width);
+    height: var(--chatbot-height);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  @media (max-width: 520px){
+    :root{
+      --chatbot-gap: 10px;
+      --chatbot-edge: 10px;
+      --chatbot-width: 95vw;
+      --chatbot-height: 80vh;
+    }
+  }
+</style>
+
+<!-- SCRIPT Lottie (icon động) -->
 <script type="module">
   import { DotLottie } from "https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web/+esm";
 
+  const canvas = document.getElementById("chatbot-lottie-canvas");
   const dotLottie = new DotLottie({
     autoplay: true,
     loop: true,
-    canvas: document.getElementById("chatbot-lottie-canvas"),
-    src: "../../chatbot/robot.json", // đường dẫn tới file robot.json
-  });
-
-  dotLottie.addEventListener('ready', () => {
-    const canvas = document.getElementById("chatbot-lottie-canvas");
-    canvas.style.background = 'transparent';
-    canvas.style.borderRadius = '50%';
+    canvas,
+    src: "/chatbot/robot.json"
   });
 </script>
 
-<!-- Mở/đóng popup -->
+<!-- SCRIPT toggle popup + căn theo icon -->
 <script>
   const toggle = document.getElementById("chatbot-toggler");
   const iframe = document.getElementById("chatbotIframe");
 
   toggle.addEventListener("click", () => {
-    const isVisible = iframe.style.display === "block";
-    iframe.style.display = isVisible ? "none" : "block";
+    const show = iframe.style.display !== "block";
+    iframe.style.display = show ? "block" : "none";
+    if (show) placeChatNearIcon();
+  });
+
+  function placeChatNearIcon(){
+    const root = getComputedStyle(document.documentElement);
+    const gap  = parseInt(root.getPropertyValue('--chatbot-gap'))  || 10;
+    const edge = parseInt(root.getPropertyValue('--chatbot-edge')) || 12;
+
+    const r = toggle.getBoundingClientRect();
+    const rightSpace  = Math.max(window.innerWidth - r.right, edge);
+    const bottomSpace = Math.max(window.innerHeight - r.top, edge);
+
+    iframe.style.right  = `${rightSpace}px`;
+    iframe.style.bottom = `${bottomSpace + gap}px`;
+  }
+
+  window.addEventListener('resize', () => {
+    if (iframe.style.display === "block") placeChatNearIcon();
+  });
+
+  // Click ra ngoài để đóng
+  document.addEventListener('click', (e) => {
+    if (iframe.style.display !== "block") return;
+    const insideBtn   = e.target.closest('#chatbot-toggler');
+    const insideFrame = e.target.closest('#chatbotIframe');
+    if (!insideBtn && !insideFrame) iframe.style.display = "none";
   });
 </script>
 
-
 </body>
-
 </html>
