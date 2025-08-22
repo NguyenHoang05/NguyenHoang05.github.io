@@ -27,6 +27,7 @@ body {
   /* background: #ffffff; */
   background: transparent;
   transition: all 0.2s ease;
+  z-index: 9999; /* Cao hơn z-index của header (1000) và navigation trong link.css để popup luôn trên cùng */
 }
 
 body.show-chatbot #chatbot-toggler {
@@ -66,7 +67,7 @@ body.show-chatbot #chatbot-toggler span:last-child {
 .chatbot-popup {
   position: fixed;
   right: 25px;
-  bottom: 110px;
+  bottom: 80px; /* Giảm từ 110px xuống 80px để popup đi xuống, align gần toggler hơn. Test và điều chỉnh nếu cần (ví dụ 70px hoặc 90px) */
   width: 360px; /* Reduced width for better balance */
   background: #ffffff;
   overflow: hidden;
@@ -82,6 +83,7 @@ body.show-chatbot #chatbot-toggler span:last-child {
   flex-direction: column;
   height: 600px;
   max-height: 80vh;
+  z-index: 9999; /* Cao hơn z-index của header (1000) và navigation trong link.css để popup luôn trên cùng */
 }
 
 body.show-chatbot .chatbot-popup {
@@ -339,7 +341,7 @@ body.show-emoji-picker em-emoji-picker {
 @media screen and (max-width: 600px) {
   .chatbot-popup {
     position: fixed;
-    top: 100px;
+    top: 130px; /* Tăng từ 100px lên 130px để popup thấp hơn trên mobile (tương đương đi xuống) */
     right: 15px; /* Adjusted for mobile */
     width: calc(100% - 30px); /* Full width minus margins */
     max-width: 360px; /* Consistent with desktop */
@@ -357,6 +359,7 @@ body.show-emoji-picker em-emoji-picker {
     display: flex;
     flex-direction: column;
   }
+}
 
   .chat-header .header-info .logo-text {
     font-size: 1rem; /* Smaller for mobile */
@@ -395,7 +398,7 @@ body.show-emoji-picker em-emoji-picker {
     height: 30px;
     width: 30px;
   }
-}
+
 .chat-form .chat-controls #voice-input {
   height: 30px;
   width: 30px;

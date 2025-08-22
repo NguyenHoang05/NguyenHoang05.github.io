@@ -757,6 +757,29 @@
                  icon.style.transform = 'rotate(0deg)';
              }
          }
+
+         function alignChatbotPopup() {
+  const toggler = document.getElementById('chatbot-toggler');
+  const popup = document.getElementById('chatbotIframe');
+  if (!toggler || !popup) return;
+
+  const togglerRect = toggler.getBoundingClientRect();
+  const popupHeight = popup.offsetHeight || 560; // fallback nếu chưa render
+  const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+  // Tính vị trí bottom: popup nằm phía trên toggler, cách 20px
+  const bottom = window.innerHeight - togglerRect.top + 20;
+  popup.style.bottom = bottom + 'px';
+  popup.style.right = '20px';
+}
+
+// Gọi khi mở popup và khi resize
+window.addEventListener('resize', alignChatbotPopup);
+document.getElementById('chatbot-toggler').addEventListener('click', () => {
+  const popup = document.getElementById('chatbotIframe');
+  popup.style.display = (popup.style.display === 'none' || !popup.style.display) ? 'block' : 'none';
+  alignChatbotPopup();
+});
     </script>
 <!-- NÚT CHATBOT -->
 <button id="chatbot-toggler"

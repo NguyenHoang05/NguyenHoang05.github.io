@@ -343,3 +343,17 @@ document.querySelector('#voice-input').addEventListener('click', () => {
     messageInput.placeholder = "Nhập tin nhắn...";
   }
 });
+
+const toggler = document.getElementById("chatbot-toggler");
+const iframe = document.getElementById("chatbotIframe");
+
+function alignChatbotToToggler() {
+  const rect = toggler.getBoundingClientRect();
+  iframe.style.right = '20px';
+  iframe.style.bottom = '20px';
+}
+
+toggler.addEventListener("click", () => {
+  iframe.style.display = (iframe.style.display === "none") ? "block" : "none";
+  alignChatbotToToggler();
+});
