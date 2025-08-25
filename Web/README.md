@@ -25,3 +25,10 @@ LỆNH ĐẨY LÊN SAU KHI ĐÃ SETUP
 # git add .
 # git commit -m "ghi nd cập nhật vào đây"
 # git push origin main 
+
+# KHÔI PHỤC FILE BỊ MẤT HOẶC DO THAO TÁC LỖI DẪN ĐẾN HẬU QUẢ HÚ HỒN
+# git log --oneline 		//hiện danh sách commit
+# git checkout 8h9i0j1 -- .	//mã 8h9i0j1 là các tệp muốn khôi phục
+# git add .
+# git commit -m "Khôi phục toàn bộ file từ commit 8h9i0j1"
+# git push origin main
