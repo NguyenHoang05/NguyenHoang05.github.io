@@ -336,6 +336,11 @@ body.show-emoji-picker em-emoji-picker {
   visibility: visible;
 }
 
+.EmojiMart {
+  z-index: 99999 !important;
+  position: absolute !important;
+}
+
 @media screen and (max-width: 600px) {
   .chatbot-popup {
     position: fixed;
