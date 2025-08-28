@@ -219,7 +219,7 @@ async function getGeminiResponseCached(message) {
 }
 
 async function sendMessageToBot(message) {
-  const response = await fetch('http://localhost:3000/chat', {
+  const response = await fetch('https://nguyenhoang05-github-io.onrender.com/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message })
