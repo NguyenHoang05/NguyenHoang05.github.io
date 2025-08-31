@@ -106,51 +106,5 @@
   </script>
   <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
   <script type="module" src="./script.js"></script>
-  <script>
-  const messageInput = document.querySelector('.message-input');
-  const sendMessageButton = document.getElementById('send-message');
-  const emojiBtn = document.getElementById('emoji-picker');
-  let picker = null;
-
-  // Gửi tin nhắn khi nhấn Enter (không giữ Shift)
-  messageInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessageButton.click();
-    }
-  });
-
-  // Hiển thị emoji picker khi bấm nút
-  emojiBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    if (!picker) {
-      picker = document.createElement('div');
-      picker.style.position = "absolute";
-      picker.style.zIndex = 9999;
-      picker.style.bottom = "60px";
-      picker.style.right = "10px";
-      document.body.appendChild(picker);
-
-      EmojiMart.renderPicker(picker, {
-        theme: "light",
-        onEmojiSelect: (emoji) => {
-          // Chèn emoji vào vị trí con trỏ
-          const { selectionStart: start, selectionEnd: end } = messageInput;
-          messageInput.setRangeText(emoji.native, start, end, "end");
-          messageInput.focus();
-        }
-      });
-    }
-    // Toggle picker
-    picker.style.display = (picker.style.display === "block") ? "none" : "block";
-  });
-
-  // Ẩn picker khi click ra ngoài
-  document.addEventListener('mousedown', function(e) {
-    if (picker && !picker.contains(e.target) && e.target !== emojiBtn) {
-      picker.style.display = "none";
-    }
-  });
-</script>
 </body>
 </html>
