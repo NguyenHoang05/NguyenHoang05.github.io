@@ -67,6 +67,36 @@ function isBookQuery(message) {
   ];
   return bookKeywords.some(kw => lower.includes(kw));
 }
+// --- BẮT ĐẦU ĐOẠN CODE CẦN THÊM ---
+
+async function getAllCategoriesAndAuthors() {
+  const booksRef = collection(db, "books");
+  try {
+    const snapshot = await getDocs(booksRef);
+    const categories = new Set();
+    const authors = new Set();
+
+    snapshot.forEach(doc => {
+      const book = doc.data();
+      if (book.category) {
+        categories.add(book.category.trim());
+      }
+      if (book.author) {
+        authors.add(book.author.trim());
+      }
+    });
+
+    return {
+      categories: Array.from(categories).sort(), // Sắp xếp theo thứ tự bảng chữ cái
+      authors: Array.from(authors).sort()
+    };
+  } catch (err) {
+    console.error("Lỗi khi lấy thể loại và tác giả từ Firestore:", err);
+    return { categories: [], authors: [] };
+  }
+}
+
+// --- KẾT THÚC ĐOẠN CODE CẦN THÊM ---
 
 function getDefaultBotReply(message) {
   const lower = message.toLowerCase().trim();
@@ -79,6 +109,15 @@ function getDefaultBotReply(message) {
   if (lower.includes("bạn là ai")) {
     return "Mình là trợ lý thư viện thông minh! Bạn cần tìm sách gì nè?";
   }
+
+  // Thêm các điều kiện mới cho thể loại và tác giả
+  if (lower.includes("thể loại sách") || lower.includes("loại sách nào") || lower.includes("có những thể loại") || lower.includes("loại sách") || lower.includes("sách gì")) {
+    return "show_categories"; // Trả về một cờ đặc biệt để xử lý sau
+  }
+  if (lower.includes("tác giả tiêu biểu") || lower.includes("sách của ai") || lower.includes("có những tác giả")) {
+    return "show_authors"; // Trả về một cờ đặc biệt để xử lý sau
+  }
+
   return null;
 }
 
@@ -227,10 +266,25 @@ const generateBotResponse = async (incomingMessageDiv) => {
     // Gộp sửa chính tả và trích xuất từ khóa
     const { corrected, keywords } = await correctAndExtractKeywords(userMsg);
     chatHistory.push({ role: "user", parts: [{ text: corrected }] });
-
     // Ưu tiên trả lời mẫu
+
     const defaultReply = getDefaultBotReply(corrected);
-    if (defaultReply) {
+    // Thêm các điều kiện mới để xử lý cờ "show_categories" và "show_authors"
+    if (defaultReply === "show_categories") {
+      const { categories } = await getAllCategoriesAndAuthors(); // Gọi hàm mới
+      if (categories.length > 0) {
+        apiResponseText = `📚 Thư viện của chúng tôi có các thể loại sau:\n\n• ${categories.join("\n• ")}\n\nBạn muốn tìm sách thuộc thể loại nào?`;
+      } else {
+        apiResponseText = "Xin lỗi, hiện tại tôi không tìm thấy thông tin về các thể loại sách.";
+      }
+    } else if (defaultReply === "show_authors") {
+      const { authors } = await getAllCategoriesAndAuthors(); // Gọi hàm mới
+      if (authors.length > 0) {
+        apiResponseText = `✍️ Thư viện của chúng tôi có sách của các tác giả tiêu biểu như:\n\n• ${authors.join("\n• ")}\n\nBạn muốn tìm sách của tác giả nào?`;
+      } else {
+        apiResponseText = "Xin lỗi, hiện tại tôi không tìm thấy thông tin về các tác giả.";
+      }
+    } else if (defaultReply) {
       apiResponseText = defaultReply;
     } else if (isBookQuery(corrected) && keywords.length > 0) {
       // Nếu là câu hỏi về sách và có từ khóa
