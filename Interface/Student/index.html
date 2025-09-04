@@ -827,12 +827,34 @@
     const gap  = parseInt(root.getPropertyValue('--chatbot-gap'))  || 10;
     const edge = parseInt(root.getPropertyValue('--chatbot-edge')) || 12;
 
-    const r = toggle.getBoundingClientRect();
-    const rightSpace  = Math.max(window.innerWidth - r.right, edge);
-    const bottomSpace = Math.max(window.innerHeight - r.top, edge);
+    const r = toggle.getBoundingClientRect(); // Lấy kích thước và vị trí của nút toggler
 
-    iframe.style.right  = `${rightSpace}px`;
-    iframe.style.bottom = `${bottomSpace + gap}px`;
+    // Lấy kích thước của iframe (khung chat)
+    // Đảm bảo iframe hiển thị để lấy đúng kích thước
+    const originalDisplay = iframe.style.display;
+    iframe.style.display = 'block'; // Tạm thời hiển thị để lấy kích thước
+    const iframeWidth = iframe.offsetWidth;
+    const iframeHeight = iframe.offsetHeight;
+    iframe.style.display = originalDisplay; // Khôi phục trạng thái hiển thị ban đầu
+
+    // Tính toán vị trí mới cho iframe
+    // Đặt khung chat ở bên trái của icon và phía trên icon
+    // right: khoảng cách từ mép phải màn hình đến mép phải của iframe
+    // bottom: khoảng cách từ mép dưới màn hình đến mép dưới của iframe
+    iframe.style.right = `${window.innerWidth - r.right + r.width + gap}px`; // Đặt bên phải icon
+    iframe.style.bottom = `${window.innerHeight - r.bottom + r.height + gap}px`; // Đặt phía trên icon
+
+    // Điều chỉnh nếu khung chat bị tràn ra ngoài màn hình (tùy chọn)
+    // Nếu khung chat bị tràn sang trái
+    if (iframe.offsetLeft < edge) {
+        iframe.style.left = `${edge}px`;
+        iframe.style.right = 'auto'; // Bỏ thuộc tính right để left có hiệu lực
+    }
+    // Nếu khung chat bị tràn lên trên
+    if (iframe.offsetTop < edge) {
+        iframe.style.top = `${edge}px`;
+        iframe.style.bottom = 'auto'; // Bỏ thuộc tính bottom để top có hiệu lực
+    }
   }
 
   window.addEventListener('resize', () => {
@@ -847,6 +869,5 @@
     if (!insideBtn && !insideFrame) iframe.style.display = "none";
   });
 </script>
-
 </body>
 </html>
