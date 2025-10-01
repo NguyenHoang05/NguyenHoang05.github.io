@@ -1,0 +1,85 @@
+# 🚀 Hướng dẫn Setup Project NCKH_ESP-master (PlatformIO)
+
+Làm theo các bước dưới đây để cài thư viện và build project thành công trên máy mới.
+
+---
+
+## 1️⃣ Mở project đúng cách
+
+- Cài extension **PlatformIO IDE** trên VSCode  
+  (Ctrl + Shift + X → tìm "PlatformIO IDE" → Install → Reload VSCode).
+- Mở đúng thư mục gốc project:
+  - **File → Open Folder → chọn thư mục `NCKH_ESP-master`**
+  - Đảm bảo thấy file `platformio.ini` trong Explorer.
+
+---
+
+## 2️⃣ Kiểm tra file `platformio.ini`
+
+Đảm bảo có phần `lib_deps` như sau:
+
+```ini
+[env:esp32doit-devkit-v1]
+platform = espressif32
+board = esp32doit-devkit-v1
+framework = arduino
+monitor_speed = 115200
+upload_port = COM3
+
+lib_deps =
+    miguelbalboa/MFRC522@^1.4.12
+    marcoschwartz/LiquidCrystal_I2C@^1.1.4
+    bblanchon/ArduinoJson@^7.4.2
+    mobizt/Firebase ESP32 Client@^4.4.17
+```
+
+---
+
+## 3️⃣ Build lần đầu để tải thư viện
+
+- Nhấn **Ctrl + Shift + P** → gõ `PlatformIO: Build` → Enter  
+  _(hoặc click dấu ✔ (Build) ở thanh dưới VSCode)_
+- Đợi đến khi terminal báo:  
+  `================= [SUCCESS] Took xx.x seconds =================`
+
+---
+
+## 4️⃣ Cập nhật IntelliSense (hết gạch đỏ ở #include)
+
+- Nhấn **Ctrl + Shift + P** → gõ `PlatformIO: Rebuild IntelliSense Index` → Enter
+
+---
+
+## 5️⃣ Upload code lên ESP32 (tùy chọn)
+
+- Cắm board ESP32, chọn đúng cổng COM (nếu cần sửa trong `platformio.ini`)
+- Nhấn **Ctrl + Alt + U** _(hoặc click mũi tên "Upload")_
+- Đợi đến khi terminal báo:  
+  `================= [SUCCESS] Took xx.x seconds =================`
+
+---
+
+## 6️⃣ Khi dùng Git
+
+- KHÔNG commit thư mục `.pio/` (rất nặng, không cần thiết)
+- Chỉ commit/push:
+  - `platformio.ini`
+  - thư mục `src/`, `include/`, `lib/` (nếu có custom lib)
+
+Người khác chỉ cần clone project → mở VSCode → **Build (Ctrl + Shift + P → Build)** là sẽ tự động tải đầy đủ thư viện.
+
+---
+
+## ⌨️ Tổ hợp phím hữu ích
+
+| Chức năng             | Tổ hợp phím                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| Mở Command Palette    | **Ctrl + Shift + P**                                               |
+| Build project         | **Ctrl + Shift + P** → gõ `PlatformIO: Build`                      |
+| Upload code lên ESP32 | **Ctrl + Alt + U**                                                 |
+| Rebuild IntelliSense  | **Ctrl + Shift + P** → gõ `PlatformIO: Rebuild IntelliSense Index` |
+| Mở Serial Monitor     | **Ctrl + Alt + S**                                                 |
+
+---
+
+✅ **Sau các bước trên, project sẽ build thành công và sẵn sàng để upload lên ESP32.**
