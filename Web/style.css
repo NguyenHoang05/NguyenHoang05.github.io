@@ -58,8 +58,73 @@ form{ width: 100%; }
 
     .container.active .form-box{ right: 50%; }
 
-    .form-box.register{ visibility: hidden; }
-        .container.active .form-box.register{ visibility: visible; }
+    .form-box.register {
+        visibility: hidden;
+        position: absolute;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: #fff;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        color: #333;
+        text-align: center;
+        padding: 24px 18px 18px 18px;
+        z-index: 1;
+        transition: .6s ease-in-out 1.2s, visibility 0s 1s;
+        overflow: hidden;
+    }
+
+    .container.active .form-box.register {
+        visibility: visible;
+    }
+
+    .form-box.register form {
+        width: 100%;
+        max-width: 340px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-height: 100%;
+        overflow-y: auto;
+        padding-bottom: 10px;
+    }
+
+    .form-box.register h1 {
+        font-size: 28px;
+        margin: 0 0 10px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .form-box.register .input-box {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .form-box.register .input-box input,
+    .form-box.register .input-box select {
+        font-size: 15px;
+        padding: 10px 40px 10px 14px;
+        border-radius: 7px;
+    }
+
+    .form-box.register .btn {
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .form-box.register p {
+        font-size: 14px;
+        margin: 10px 0 8px 0;
+    }
+
+    .form-box.register .social-icons {
+        margin-top: 4px;
+        margin-bottom: 0;
+    }
 
     /* Compact heading for register form to avoid overflow */
     .form-box.register h1{
@@ -219,6 +284,25 @@ form{ width: 100%; }
         border: 2px solid #fff;
         box-shadow: none;
     }
+
+/* --- Chỉ áp dụng cho form đăng ký --- */
+.form-box.register {
+    overflow-y: auto;
+    max-height: 100%;
+    /* Đảm bảo form không bị tràn ra ngoài container */
+    scrollbar-width: thin;
+    scrollbar-color: #b3b3b3 #f0f0f0;
+}
+
+/* Ẩn thanh cuộn ngang nếu có */
+.form-box.register::-webkit-scrollbar {
+    width: 6px;
+    background: #f0f0f0;
+}
+.form-box.register::-webkit-scrollbar-thumb {
+    background: #b3b3b3;
+    border-radius: 4px;
+}
 
 @media screen and (max-width: 650px){
     .container{ height: calc(100vh - 40px); }
