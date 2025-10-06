@@ -2,200 +2,155 @@ console.log("✅ borrow.js loaded");
 
 import { db, rtdb } from './firebase.js';
 import { doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import { ref, set, update, onValue, remove ,get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { ref, set, update, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// Hàm đóng modal
+// 🔹 Đóng modal
 window.closeBorrowForm = function () {
   document.getElementById("borrowModal").style.display = "none";
-}
+};
 
-// Hàm mở modal
+// 🔹 Mở modal và tự động load dữ liệu từ temp
 window.openBorrowForm = function () {
   document.getElementById("borrowModal").style.display = "flex";
 
-  // 🔥 Theo dõi realtime temp → tự điền form khi có thay đổi
   const tempRef = ref(rtdb, "temp");
   onValue(tempRef, (snapshot) => {
-    if (snapshot.exists()) {
-      const temp = snapshot.val();
+    if (!snapshot.exists()) return;
+    const temp = snapshot.val();
 
-      // Lấy dữ liệu student
-      if (temp.student) {
-        document.getElementById("studentName").value = temp.student.username || "";
-        document.getElementById("studentId").value = temp.student.iduser || "";
-      }
+    // 🧑‍🎓 Hiển thị thông tin sinh viên
+    if (temp.student) {
+      const s = temp.student;
+      document.getElementById("studentName").value = s.username || "";
+      document.getElementById("studentId").value = s.iduser || "";
+      document.getElementById("studentCode").value = s.mssv || "";
+      document.getElementById("studentClass").value = s.class || "";
+    }
 
-      // Lấy dữ liệu book
-      if (temp.book) {
-        document.getElementById("bookId").value = temp.book.id || "";
-        document.getElementById("bookNameBorrow").value = temp.book.title || "";
-      }
+    // 📚 Hiển thị danh sách nhiều sách (book1, book2,…)
+    const booksContainer = document.getElementById("booksContainer");
+    booksContainer.innerHTML = ""; // Xóa các dòng cũ
+
+    if (temp.books) {
+      Object.keys(temp.books).forEach((key) => {
+        const book = temp.books[key];
+        const div = document.createElement("div");
+        div.classList.add("book-row");
+        div.style = "display:flex;gap:8px;margin-bottom:10px;align-items:end;padding:10px;background:white;border-radius:6px;border:1px solid #e1e5e9;";
+
+        // ⚠️ PHẢI dùng backtick để render HTML template
+        div.innerHTML = `
+          <div style="flex:2;">
+            <label style="display:block;margin-bottom:3px;color:#333;font-weight:500;font-size:0.8rem;">ID Sách:</label>
+            <input type="text" name="bookId" value="${book.id || ""}" required style="width:100%;padding:6px 8px;border:1px solid #e1e5e9;border-radius:4px;">
+          </div>
+          <div style="flex:3;">
+            <label style="display:block;margin-bottom:3px;color:#333;font-weight:500;font-size:0.8rem;">Tên Sách:</label>
+            <input type="text" name="bookName" value="${book.title || ""}" required style="width:100%;padding:6px 8px;border:1px solid #e1e5e9;border-radius:4px;">
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+            <button type="button" onclick="removeBookRow(this)" style="background:#f44336;color:white;border:none;padding:6px 8px;border-radius:4px;">X</button>
+          </div>
+        `;
+
+        booksContainer.appendChild(div);
+      });
+
+      document.getElementById("bookCount").textContent =
+        Object.keys(temp.books).length;
     }
   });
-}
+};
 
-// Hàm submit form mượn sách (hỗ trợ multiple books)
+// 🔹 Xóa dòng sách
+window.removeBookRow = function (btn) {
+  btn.closest(".book-row").remove();
+  const count = document.querySelectorAll(".book-row").length;
+  document.getElementById("bookCount").textContent = count;
+};
+
+// 🔹 Submit form mượn sách
 window.submitBorrowForm = async function (event) {
   event.preventDefault();
 
   // Lấy thông tin sinh viên
   const studentName = document.getElementById("studentName").value.trim();
   const studentId = document.getElementById("studentId").value.trim();
+  const studentCode = document.getElementById("studentCode").value.trim();
+  const studentClass = document.getElementById("studentClass").value.trim();
   const borrowDate = document.getElementById("borrowDate").value;
   const returnDate = document.getElementById("returnDate").value;
 
-  // Lấy danh sách sách từ form
-  const bookRows = document.querySelectorAll('.book-row');
+  // Lấy danh sách sách
+  const bookRows = document.querySelectorAll(".book-row");
   const books = [];
-  
-  bookRows.forEach((row, index) => {
+  bookRows.forEach((row) => {
     const bookId = row.querySelector('input[name="bookId"]').value.trim();
     const bookName = row.querySelector('input[name="bookName"]').value.trim();
-    
-    if (bookId && bookName) {
-      books.push({
-        bookId: bookId,
-        bookName: bookName
-      });
-    }
+    if (bookId && bookName) books.push({ bookId, bookName });
   });
 
-  // Validation
   if (!studentName || !studentId || !borrowDate || !returnDate) {
     alert("⚠️ Vui lòng nhập đầy đủ thông tin sinh viên!");
     return;
   }
-
   if (books.length === 0) {
     alert("⚠️ Vui lòng thêm ít nhất một cuốn sách!");
     return;
   }
 
-  // Kiểm tra trùng lặp ID sách
-  const bookIds = books.map(book => book.bookId);
-  const uniqueBookIds = [...new Set(bookIds)];
-  if (bookIds.length !== uniqueBookIds.length) {
-    alert("⚠️ Không được mượn cùng một cuốn sách nhiều lần!");
-    return;
-  }
-
   try {
-    // 🔥 Lấy thêm dữ liệu từ temp (student)
-    const tempSnap = await get(ref(rtdb, "temp"));
-    let extraData = {};
-    if (tempSnap.exists()) {
-      const temp = tempSnap.val();
-      if (temp.student) {
-        extraData.mssv = temp.student.mssv || "";
-        extraData.email = temp.student.email || "";
-      }
-    }
-
     const results = [];
-    const errors = [];
 
-    // Xử lý từng cuốn sách
     for (let i = 0; i < books.length; i++) {
-      const book = books[i];
-      
-      try {
-        const historyId = `${studentId}_${book.bookId}_${borrowDate}_${i}`;
-        
-        const historyData = {
-          studentName,
-          studentId,
-          bookId: book.bookId,
-          bookName: book.bookName,
-          borrowDate,
-          returnDate,
-          status: "Đang mượn",
-          createdAt: new Date().toISOString(),
-          borrowOrder: i + 1, // Thứ tự mượn sách
-          totalBooks: books.length, // Tổng số sách mượn
-          ...extraData
-        };
+      const b = books[i];
+      const historyId = `${studentId}_${b.bookId}_${borrowDate}_${i}`;
 
-        // 1️⃣ Lưu vào Firestore
-        await setDoc(doc(db, "history", historyId), historyData);
-        console.log(`✅ Firestore ghi thành công cho sách ${i + 1}!`);
+      const data = {
+        studentName,
+        studentId,
+        studentCode,
+        studentClass,
+        bookId: b.bookId,
+        bookName: b.bookName,
+        borrowDate,
+        returnDate,
+        status: "Đang mượn",
+        createdAt: new Date().toISOString(),
+        borrowOrder: i + 1,
+        totalBooks: books.length,
+      };
 
-        // 2️⃣ Lưu vào Realtime DB
-        await set(ref(rtdb, "history/" + historyId), historyData);
-        console.log(`✅ Realtime DB ghi thành công cho sách ${i + 1}!`);
+      // Firestore
+      await setDoc(doc(db, "history", historyId), data);
 
-        // 3️⃣ Update trạng thái sách
-        try {
-          await updateDoc(doc(db, "books", book.bookId), { status: "Đã mượn" });
-          await update(ref(rtdb, "books/" + book.bookId), { status: "Đã mượn" });
-          console.log(`✅ Cập nhật trạng thái sách ${book.bookId} thành công!`);
-        } catch (err) {
-          console.warn(`⚠️ Không tìm thấy sách ${book.bookId} trong books để update!`, err);
-        }
+      // Realtime
+      await set(ref(rtdb, "history/" + historyId), data);
 
-        // 4️⃣ Thêm sách vào user profile
-        try {
-          await setDoc(doc(db, "users", studentId, "books", book.bookId), {
-            bookName: book.bookName,
-            borrowDate,
-            returnDate,
-            status: "Đang mượn",
-            borrowOrder: i + 1
-          });
-          console.log(`✅ Đã lưu sách ${book.bookId} vào user profile!`);
-        } catch (err) {
-          console.error(`❌ Lỗi khi lưu sách ${book.bookId} vào user profile:`, err);
-        }
+      // Update trạng thái sách
+      await updateDoc(doc(db, "books", b.bookId), { status: "Đã mượn" }).catch(() => {});
+      await update(ref(rtdb, "books/" + b.bookId), { status: "Đã mượn" });
 
-        results.push({
-          bookId: book.bookId,
-          bookName: book.bookName,
-          success: true
-        });
-
-      } catch (error) {
-        console.error(`❌ Lỗi khi xử lý sách ${book.bookId}:`, error);
-        errors.push({
-          bookId: book.bookId,
-          bookName: book.bookName,
-          error: error.message
-        });
-      }
-    }
-
-    // 5️⃣ Xóa temp sau khi hoàn thành
-    await remove(ref(rtdb, "temp"));
-    console.log("🗑️ Đã xóa temp sau khi mượn!");
-
-    // Hiển thị kết quả
-    let successMessage = `📚 Mượn sách thành công!\n\nThông tin sinh viên:\n- Tên: ${studentName}\n- ID Sinh Viên: ${studentId}\n- Ngày mượn: ${borrowDate}\n- Ngày trả: ${returnDate}\n\nSách đã mượn (${results.length}/${books.length}):\n`;
-    
-    results.forEach((result, index) => {
-      successMessage += `${index + 1}. ${result.bookName} (ID: ${result.bookId})\n`;
-    });
-
-    if (errors.length > 0) {
-      successMessage += `\n⚠️ Lỗi khi mượn:\n`;
-      errors.forEach((error, index) => {
-        successMessage += `${index + 1}. ${error.bookName} (ID: ${error.bookId}): ${error.error}\n`;
+      // Thêm vào profile user (trong Firestore)
+      await setDoc(doc(db, "users", studentId, "books", b.bookId), {
+        bookName: b.bookName,
+        borrowDate,
+        returnDate,
+        status: "Đang mượn",
       });
+
+      results.push(b.bookName);
     }
 
-    alert(successMessage);
-    
-    // Reset form và đóng modal
+    // Xóa temp
+    await remove(ref(rtdb, "temp"));
+
+    // ⚠️ Dùng backtick để in danh sách
+    alert(`📚 Đã mượn thành công ${results.length} cuốn:\n${results.join("\n")}`);
     document.getElementById("borrowForm").reset();
-    if (window.closeBorrowForm) {
-      closeBorrowForm();
-    }
-    
-    // Reload danh sách sách nếu đang ở trang List
-    if (window.loadBookList) {
-        loadBookList();
-    }
-
+    closeBorrowForm();
   } catch (error) {
-    console.error("❌ Lỗi tổng thể khi mượn sách:", error);
+    console.error("❌ Lỗi khi mượn sách:", error);
     alert("Không thể mượn sách: " + error.message);
   }
 };
-
