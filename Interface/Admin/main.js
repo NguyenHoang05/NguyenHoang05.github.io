@@ -586,7 +586,7 @@ function addBookRow() {
 
   newRow.className = "book-row";
   newRow.style.cssText =
-    "display:flex;gap:8px;margin-bottom:10px;align-items:end;padding:10px;background:white;border-radius:6px;border:1px solid #e1e5e9;transition:all 0.3s;";
+    "display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;padding:15px;margin-bottom:10px;background:white;border:2px solid #e1e5e9;border-radius:8px;transition:all 0.3s;";
   newRow.onmouseover = function () {
     this.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
   };
@@ -594,20 +594,38 @@ function addBookRow() {
     this.style.boxShadow = "none";
   };
 
+  // Tính toán ngày mượn (hôm nay) và ngày trả (sau 3 tháng)
+  const today = new Date();
+  const returnDate = new Date(today);
+  returnDate.setMonth(returnDate.getMonth() + 3); // Thêm 3 tháng
+
+  const todayStr = today.toISOString().split("T")[0];
+  const returnDateStr = returnDate.toISOString().split("T")[0];
+
   newRow.innerHTML = `
-        <div style="flex:2;">
-            <label style="display:block;margin-bottom:3px;color:#333;font-weight:500;font-size:0.8rem;">ID Sách:</label>
-            <input type="text" name="bookId" required style="width:100%;padding:6px 8px;border:1px solid #e1e5e9;border-radius:4px;font-size:0.85rem;transition:all 0.3s;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 2px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" placeholder="ID sách">
+        <div>
+            <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.85rem;">Ngày Mượn:</label>
+            <input type="date" name="borrowDate" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:6px;font-size:0.85rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" value="${todayStr}" readonly>
         </div>
         
-        <div style="flex:3;">
-            <label style="display:block;margin-bottom:3px;color:#333;font-weight:500;font-size:0.8rem;">Tên Sách:</label>
-            <input type="text" name="bookName" required style="width:100%;padding:6px 8px;border:1px solid #e1e5e9;border-radius:4px;font-size:0.85rem;transition:all 0.3s;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 2px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" placeholder="Tên sách">
+        <div>
+            <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.85rem;">Ngày Trả:</label>
+            <input type="date" name="returnDate" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:6px;font-size:0.85rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" value="${returnDateStr}" readonly>
         </div>
         
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;">
-            <button type="button" onclick="removeBookRow(this)" style="background:linear-gradient(135deg,#f44336,#d32f2f);color:white;border:none;padding:6px 8px;border-radius:4px;font-size:0.8rem;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Xóa sách này">
-                <ion-icon name="close-outline" style="font-size:0.9rem;"></ion-icon>
+        <div>
+            <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.85rem;">ID Sách:</label>
+            <input type="text" name="bookId" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:6px;font-size:0.85rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" placeholder="ID sách">
+        </div>
+        
+        <div>
+            <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.85rem;">Tên Sách:</label>
+            <input type="text" name="bookName" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:6px;font-size:0.85rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'" placeholder="Tên sách">
+        </div>
+        
+        <div style="display:flex;align-items:center;">
+            <button type="button" onclick="removeBookRow(this)" style="background:linear-gradient(135deg,#f44336,#d32f2f);color:white;border:none;padding:8px 12px;border-radius:6px;font-size:0.8rem;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Xóa sách">
+                <ion-icon name="trash-outline" style="font-size:0.9rem;"></ion-icon>
             </button>
         </div>
     `;
@@ -615,7 +633,7 @@ function addBookRow() {
   container.appendChild(newRow);
   updateBookCount();
 
-  // Focus vào input đầu tiên của row mới
+  // Focus vào input ID sách của row mới
   newRow.querySelector('input[name="bookId"]').focus();
 }
 
@@ -661,6 +679,624 @@ function updateBookCount() {
   }
 }
 
+// Hàm load danh sách sách đang mượn (giả lập từ RFID)
+function loadBorrowedBooks() {
+  // Giả lập dữ liệu từ RFID - trong thực tế sẽ load từ Firebase dựa trên studentId
+  const studentId = document.getElementById("returnStudentId").value.trim();
+
+  if (!studentId) {
+    showNoBooksMessage();
+    return;
+  }
+
+  // Giả lập dữ liệu sách đang mượn
+  const borrowedBooks = [
+    {
+      bookName: "Lập trình C++",
+      bookId: "BOOK001",
+      borrowDate: "2024-01-15",
+      returnDate: "2024-01-29",
+      status: "Đang mượn",
+    },
+    {
+      bookName: "Cấu trúc dữ liệu",
+      bookId: "BOOK002",
+      borrowDate: "2024-01-10",
+      returnDate: "2024-01-24",
+      status: "Đang mượn",
+    },
+    {
+      bookName: "Thuật toán",
+      bookId: "BOOK003",
+      borrowDate: "2024-01-20",
+      returnDate: "2024-02-03",
+      status: "Đang mượn",
+    },
+  ];
+
+  const tbody = document.getElementById("borrowedBooksTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (borrowedBooks.length === 0) {
+    showNoBooksMessage();
+    return;
+  }
+
+  borrowedBooks.forEach((book, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td style="padding:8px;text-align:center;border:1px solid #ddd;">
+        <input type="checkbox" class="book-checkbox" data-book-id="${book.bookId}" data-book-name="${book.bookName}" data-book-date="${book.borrowDate}" onchange="toggleBookSelection(this)" style="transform:scale(1.2);">
+      </td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;">${book.bookName}</td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;">${book.bookId}</td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;text-align:center;">${book.borrowDate}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // Hiển thị bảng và cập nhật số lượng
+  showBooksTable();
+  document.getElementById("returnBookCount").textContent = borrowedBooks.length;
+
+  // Reset danh sách đã chọn
+  clearAllSelected();
+}
+
+// Hàm toggle chọn tất cả sách
+function toggleAllBooks(selectAllCheckbox) {
+  const bookCheckboxes = document.querySelectorAll(".book-checkbox");
+  bookCheckboxes.forEach((checkbox) => {
+    checkbox.checked = selectAllCheckbox.checked;
+    toggleBookSelection(checkbox);
+  });
+}
+
+// Hàm toggle chọn một sách
+function toggleBookSelection(checkbox) {
+  const bookId = checkbox.dataset.bookId;
+  const bookName = checkbox.dataset.bookName;
+  const bookDate = checkbox.dataset.bookDate;
+
+  if (checkbox.checked) {
+    addToSelectedBooks(bookId, bookName, bookDate);
+  } else {
+    removeFromSelectedBooks(bookId);
+  }
+
+  updateSelectedCount();
+  updateReturnButton();
+}
+
+// Hàm thêm sách vào danh sách đã chọn
+function addToSelectedBooks(bookId, bookName, bookDate) {
+  const selectedItems = document.getElementById("selectedBooksItems");
+  const existingItem = document.getElementById(`selected-${bookId}`);
+
+  if (existingItem) return; // Đã tồn tại
+
+  const item = document.createElement("div");
+  item.id = `selected-${bookId}`;
+  item.style.cssText = `
+    display:flex;justify-content:space-between;align-items:center;padding:8px;margin-bottom:6px;
+    background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:6px;
+    transition:all 0.3s;
+  `;
+
+  item.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-weight:600;font-size:0.85rem;color:#4CAF50;">${bookName}</div>
+      <div style="font-size:0.75rem;color:#666;">ID: ${bookId} | Mượn: ${bookDate}</div>
+    </div>
+    <button onclick="removeFromSelectedBooks('${bookId}')" style="background:none;border:none;color:#f44336;cursor:pointer;padding:4px;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Bỏ chọn">
+      <ion-icon name="close-circle" style="font-size:1.2rem;"></ion-icon>
+    </button>
+  `;
+
+  selectedItems.appendChild(item);
+
+  // Hiển thị danh sách đã chọn
+  showSelectedBooksList();
+}
+
+// Hàm xóa sách khỏi danh sách đã chọn
+function removeFromSelectedBooks(bookId) {
+  const item = document.getElementById(`selected-${bookId}`);
+  if (item) {
+    item.remove();
+  }
+
+  // Bỏ tích checkbox
+  const checkbox = document.querySelector(`[data-book-id="${bookId}"]`);
+  if (checkbox) {
+    checkbox.checked = false;
+  }
+
+  // Ẩn danh sách nếu không còn sách nào
+  const selectedItems = document.getElementById("selectedBooksItems");
+  if (selectedItems.children.length === 0) {
+    hideSelectedBooksList();
+  }
+
+  updateSelectedCount();
+  updateReturnButton();
+}
+
+// Hàm hiển thị danh sách đã chọn
+function showSelectedBooksList() {
+  const noSelectedMessage = document.getElementById("noSelectedBooksMessage");
+  const selectedList = document.getElementById("selectedBooksList");
+
+  if (noSelectedMessage) noSelectedMessage.style.display = "none";
+  if (selectedList) selectedList.style.display = "block";
+}
+
+// Hàm ẩn danh sách đã chọn
+function hideSelectedBooksList() {
+  const noSelectedMessage = document.getElementById("noSelectedBooksMessage");
+  const selectedList = document.getElementById("selectedBooksList");
+
+  if (noSelectedMessage) noSelectedMessage.style.display = "flex";
+  if (selectedList) selectedList.style.display = "none";
+}
+
+// Hàm xóa tất cả sách đã chọn
+function clearAllSelected() {
+  const selectedItems = document.getElementById("selectedBooksItems");
+  if (selectedItems) {
+    selectedItems.innerHTML = "";
+  }
+
+  // Bỏ tích tất cả checkbox
+  const bookCheckboxes = document.querySelectorAll(".book-checkbox");
+  bookCheckboxes.forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+
+  const selectAllCheckbox = document.getElementById("selectAllBooks");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+  }
+
+  hideSelectedBooksList();
+  updateSelectedCount();
+  updateReturnButton();
+}
+
+// Hàm cập nhật số lượng sách đã chọn
+function updateSelectedCount() {
+  const selectedItems = document.getElementById("selectedBooksItems");
+  const count = selectedItems ? selectedItems.children.length : 0;
+
+  document.getElementById("selectedCount").textContent = count;
+  document.getElementById("selectedCountBtn").textContent = count;
+}
+
+// Hàm cập nhật trạng thái nút trả sách
+function updateReturnButton() {
+  const returnBtn = document.getElementById("returnSelectedBtn");
+  const validationMsg = document.getElementById("returnValidationMessage");
+  const count = parseInt(document.getElementById("selectedCount").textContent);
+
+  if (count > 0) {
+    returnBtn.disabled = false;
+    returnBtn.style.opacity = "1";
+    returnBtn.style.cursor = "pointer";
+    if (validationMsg) validationMsg.style.display = "none";
+  } else {
+    returnBtn.disabled = true;
+    returnBtn.style.opacity = "0.5";
+    returnBtn.style.cursor = "not-allowed";
+    if (validationMsg) validationMsg.style.display = "block";
+  }
+}
+
+// Hàm test quét RFID sách
+function testBookRFIDScan() {
+  const bookCheckboxes = document.querySelectorAll(".book-checkbox");
+  if (bookCheckboxes.length === 0) {
+    showAlert("Vui lòng quét thẻ RFID sinh viên trước!", "warning");
+    return;
+  }
+
+  // Giả lập quét sách ngẫu nhiên
+  const randomIndex = Math.floor(Math.random() * bookCheckboxes.length);
+  const randomCheckbox = bookCheckboxes[randomIndex];
+
+  if (!randomCheckbox.checked) {
+    randomCheckbox.checked = true;
+    toggleBookSelection(randomCheckbox);
+    showAlert(`Đã quét sách: ${randomCheckbox.dataset.bookName}`, "success");
+  } else {
+    showAlert("Sách này đã được chọn rồi!", "info");
+  }
+}
+
+// Hàm load danh sách sách đang mượn của sinh viên (cho modal Mượn sách)
+function loadCurrentBorrowedBooks() {
+  const studentId = document.getElementById("studentId").value.trim();
+
+  if (!studentId) {
+    showNoCurrentBooksMessage();
+    return;
+  }
+
+  // Giả lập dữ liệu sách đang mượn
+  const currentBorrowedBooks = [
+    {
+      bookName: "Lập trình Java",
+      bookId: "BOOK004",
+      borrowDate: "2024-01-05",
+      returnDate: "2024-01-19",
+      status: "Đang mượn",
+    },
+    {
+      bookName: "Cơ sở dữ liệu",
+      bookId: "BOOK005",
+      borrowDate: "2024-01-12",
+      returnDate: "2024-01-26",
+      status: "Đang mượn",
+    },
+  ];
+
+  const tbody = document.getElementById("currentBorrowedBooksTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (currentBorrowedBooks.length === 0) {
+    showNoCurrentBooksMessage();
+    return;
+  }
+
+  currentBorrowedBooks.forEach((book) => {
+    const row = document.createElement("tr");
+    const statusColor = book.status === "Đang mượn" ? "#4CAF50" : "#FF9800";
+    row.innerHTML = `
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;">${book.bookName}</td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;">${book.bookId}</td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;text-align:center;">${book.borrowDate}</td>
+      <td style="padding:8px;border:1px solid #ddd;font-size:0.85rem;text-align:center;">
+        <span style="color:${statusColor};font-weight:600;">${book.status}</span>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // Hiển thị bảng và cập nhật số lượng
+  showCurrentBooksTable();
+  document.getElementById("currentBorrowCount").textContent =
+    currentBorrowedBooks.length;
+}
+
+// Hàm hiển thị thông báo chưa có sách đang mượn
+function showNoCurrentBooksMessage() {
+  const noCurrentMessage = document.getElementById("noCurrentBooksMessage");
+  const booksTable = document.getElementById("currentBorrowedBooksTable");
+  const bookCount = document.getElementById("borrowBookCount");
+
+  if (noCurrentMessage) noCurrentMessage.style.display = "flex";
+  if (booksTable) booksTable.style.display = "none";
+  if (bookCount) bookCount.style.display = "none";
+}
+
+// Hàm hiển thị bảng sách đang mượn
+function showCurrentBooksTable() {
+  const noCurrentMessage = document.getElementById("noCurrentBooksMessage");
+  const booksTable = document.getElementById("currentBorrowedBooksTable");
+  const bookCount = document.getElementById("borrowBookCount");
+
+  if (noCurrentMessage) noCurrentMessage.style.display = "none";
+  if (booksTable) booksTable.style.display = "table";
+  if (bookCount) bookCount.style.display = "flex";
+}
+
+// Hàm thêm sách vào danh sách sẽ mượn
+function addToNewBorrowBooks(bookData) {
+  const newBorrowItems = document.getElementById("newBorrowBooksItems");
+  const existingItem = document.getElementById(`new-borrow-${bookData.bookId}`);
+
+  if (existingItem) return; // Đã tồn tại
+
+  const item = document.createElement("div");
+  item.id = `new-borrow-${bookData.bookId}`;
+  item.style.cssText = `
+    display:flex;justify-content:space-between;align-items:center;padding:8px;margin-bottom:6px;
+    background:rgba(33,150,243,0.1);border:1px solid rgba(33,150,243,0.3);border-radius:6px;
+    transition:all 0.3s;
+  `;
+
+  item.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-weight:600;font-size:0.85rem;color:#2196F3;">${bookData.bookName}</div>
+      <div style="font-size:0.75rem;color:#666;">ID: ${bookData.bookId} | Mượn: ${bookData.borrowDate}</div>
+    </div>
+    <button onclick="removeFromNewBorrowBooks('${bookData.bookId}')" style="background:none;border:none;color:#f44336;cursor:pointer;padding:4px;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Xóa sách">
+      <ion-icon name="close-circle" style="font-size:1.2rem;"></ion-icon>
+    </button>
+  `;
+
+  newBorrowItems.appendChild(item);
+
+  // Hiển thị danh sách sẽ mượn
+  showNewBorrowBooksList();
+  updateNewBorrowCount();
+  updateBorrowButton();
+}
+
+// Hàm xóa sách khỏi danh sách sẽ mượn
+function removeFromNewBorrowBooks(bookId) {
+  const item = document.getElementById(`new-borrow-${bookId}`);
+  if (item) {
+    item.remove();
+  }
+
+  // Ẩn danh sách nếu không còn sách nào
+  const newBorrowItems = document.getElementById("newBorrowBooksItems");
+  if (newBorrowItems.children.length === 0) {
+    hideNewBorrowBooksList();
+  }
+
+  updateNewBorrowCount();
+  updateBorrowButton();
+}
+
+// Hàm hiển thị danh sách sẽ mượn
+function showNewBorrowBooksList() {
+  const noNewMessage = document.getElementById("noNewBooksMessage");
+  const newBorrowList = document.getElementById("newBorrowBooksList");
+
+  if (noNewMessage) noNewMessage.style.display = "none";
+  if (newBorrowList) newBorrowList.style.display = "block";
+}
+
+// Hàm ẩn danh sách sẽ mượn
+function hideNewBorrowBooksList() {
+  const noNewMessage = document.getElementById("noNewBooksMessage");
+  const newBorrowList = document.getElementById("newBorrowBooksList");
+
+  if (noNewMessage) noNewMessage.style.display = "flex";
+  if (newBorrowList) newBorrowList.style.display = "none";
+}
+
+// Hàm xóa tất cả sách sẽ mượn
+function clearAllNewBorrow() {
+  const newBorrowItems = document.getElementById("newBorrowBooksItems");
+  if (newBorrowItems) {
+    newBorrowItems.innerHTML = "";
+  }
+
+  hideNewBorrowBooksList();
+  updateNewBorrowCount();
+  updateBorrowButton();
+}
+
+// Hàm cập nhật số lượng sách sẽ mượn
+function updateNewBorrowCount() {
+  const newBorrowItems = document.getElementById("newBorrowBooksItems");
+  const count = newBorrowItems ? newBorrowItems.children.length : 0;
+
+  document.getElementById("newBorrowCount").textContent = count;
+  document.getElementById("totalBorrowCount").textContent = count;
+}
+
+// Hàm cập nhật trạng thái nút mượn sách
+function updateBorrowButton() {
+  const borrowBtn = document.getElementById("borrowSelectedBtn");
+  const validationMsg = document.getElementById("borrowValidationMessage");
+  const count = parseInt(document.getElementById("newBorrowCount").textContent);
+
+  if (count > 0) {
+    if (validationMsg) validationMsg.style.display = "none";
+  } else {
+    if (validationMsg) validationMsg.style.display = "block";
+  }
+}
+
+// Hàm test quét RFID sinh viên cho modal Mượn sách
+function testBorrowRFIDScan() {
+  const testData = {
+    name: "Nguyễn Văn B",
+    id: "STU002",
+    mssv: "B20DCCN002",
+  };
+
+  // Điền thông tin sinh viên
+  document.getElementById("studentName").value = testData.name;
+  document.getElementById("studentId").value = testData.id;
+  document.getElementById("mssv").value = testData.mssv;
+
+  // Load danh sách sách đang mượn
+  loadCurrentBorrowedBooks();
+
+  showAlert("Đã quét thẻ RFID sinh viên thành công!", "success");
+}
+
+// Hàm test quét RFID sách cho modal Mượn sách
+function testBookBorrowRFIDScan() {
+  const studentId = document.getElementById("studentId").value.trim();
+  if (!studentId) {
+    showAlert("Vui lòng quét thẻ RFID sinh viên trước!", "warning");
+    return;
+  }
+
+  // Giả lập quét sách mới và tự động thêm vào form
+  const newBookData = {
+    bookName: "Lập trình Python",
+    bookId: "BOOK006",
+  };
+
+  // Tự động thêm row sách mới
+  addBookRow();
+
+  // Điền thông tin sách vào row cuối cùng
+  const bookRows = document.querySelectorAll(".book-row");
+  const lastRow = bookRows[bookRows.length - 1];
+
+  if (lastRow) {
+    const bookIdInput = lastRow.querySelector('input[name="bookId"]');
+    const bookNameInput = lastRow.querySelector('input[name="bookName"]');
+
+    if (bookIdInput && bookNameInput) {
+      bookIdInput.value = newBookData.bookId;
+      bookNameInput.value = newBookData.bookName;
+
+      // Trigger blur event để cập nhật UI
+      bookIdInput.blur();
+      bookNameInput.blur();
+    }
+  }
+
+  showAlert(`Đã quét sách: ${newBookData.bookName}`, "success");
+}
+
+// Hàm xử lý trả sách
+function returnBook(bookId, bookName) {
+  if (confirm("Xác nhận trả sách?\n\nSách: " + bookName + "\nID: " + bookId)) {
+    showAlert(
+      "Đã trả sách thành công!\n\nSách: " +
+        bookName +
+        "\nID: " +
+        bookId +
+        "\nNgày trả: " +
+        new Date().toLocaleDateString("vi-VN"),
+      "success"
+    );
+
+    // Reload danh sách sau khi trả sách
+    loadBorrowedBooks();
+  }
+}
+
+// Hàm xử lý submit form trả sách
+function submitReturnBookForm(event) {
+  event.preventDefault();
+
+  const studentName = document.getElementById("returnStudentName").value;
+  const studentId = document.getElementById("returnStudentId").value;
+  const mssv = document.getElementById("returnMssv").value;
+
+  if (!studentName || !studentId || !mssv) {
+    showAlert("Vui lòng điền đầy đủ thông tin sinh viên!", "error");
+    return;
+  }
+
+  const selectedItems = document.getElementById("selectedBooksItems");
+  const selectedCount = selectedItems ? selectedItems.children.length : 0;
+
+  if (selectedCount === 0) {
+    showAlert("Vui lòng chọn ít nhất một cuốn sách để trả!", "warning");
+    return;
+  }
+
+  // Lấy danh sách sách đã chọn
+  const selectedBooks = [];
+  const selectedElements = selectedItems.children;
+  for (let i = 0; i < selectedElements.length; i++) {
+    const element = selectedElements[i];
+    const bookName = element.querySelector("div div").textContent;
+    const bookId = element
+      .querySelector("div div:last-child")
+      .textContent.split("ID: ")[1]
+      .split(" |")[0];
+    selectedBooks.push({ bookId, bookName });
+  }
+
+  // Hiển thị thông báo xác nhận
+  const bookList = selectedBooks
+    .map((book) => `• ${book.bookName} (${book.bookId})`)
+    .join("\n");
+  const confirmMessage = `Xác nhận trả ${selectedCount} cuốn sách?\n\nSinh viên: ${studentName} (${mssv})\n\nSách sẽ trả:\n${bookList}`;
+
+  if (confirm(confirmMessage)) {
+    // Giả lập trả sách thành công
+    showAlert(
+      `Đã trả thành công ${selectedCount} cuốn sách!\n\nSinh viên: ${studentName}\nNgày trả: ${new Date().toLocaleDateString(
+        "vi-VN"
+      )}`,
+      "success"
+    );
+
+    // Reset form
+    resetReturnForm();
+  }
+}
+
+// Hàm hiển thị form trả sách
+function openReturnBookForm() {
+  const modal = document.getElementById("returnBookModal");
+  if (modal) {
+    modal.style.display = "flex";
+
+    // Reset form về trạng thái ban đầu
+    resetReturnForm();
+  }
+}
+
+// Hàm reset form trả sách về trạng thái ban đầu
+function resetReturnForm() {
+  // Reset thông tin sinh viên
+  document.getElementById("returnStudentName").value = "";
+  document.getElementById("returnStudentId").value = "";
+  document.getElementById("returnMssv").value = "";
+
+  // Hiển thị placeholder và ẩn bảng dữ liệu
+  showNoBooksMessage();
+
+  // Focus vào field đầu tiên để sẵn sàng quét RFID
+  setTimeout(() => {
+    document.getElementById("returnStudentId").focus();
+  }, 100);
+}
+
+// Hàm hiển thị thông báo chưa có dữ liệu
+function showNoBooksMessage() {
+  const noBooksMessage = document.getElementById("noBooksMessage");
+  const booksTable = document.getElementById("returnBooksTable");
+  const bookCountReturn = document.getElementById("bookCountReturn");
+
+  if (noBooksMessage) noBooksMessage.style.display = "flex";
+  if (booksTable) booksTable.style.display = "none";
+  if (bookCountReturn) bookCountReturn.style.display = "none";
+}
+
+// Hàm hiển thị bảng dữ liệu sách
+function showBooksTable() {
+  const noBooksMessage = document.getElementById("noBooksMessage");
+  const booksTable = document.getElementById("returnBooksTable");
+  const bookCountReturn = document.getElementById("bookCountReturn");
+
+  if (noBooksMessage) noBooksMessage.style.display = "none";
+  if (booksTable) booksTable.style.display = "table";
+  if (bookCountReturn) bookCountReturn.style.display = "flex";
+}
+
+// Hàm đóng form trả sách
+function closeReturnBookForm() {
+  const modal = document.getElementById("returnBookModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+
+  const form = document.getElementById("returnBookForm");
+  if (form) {
+    form.reset();
+  }
+}
+
+// Hàm test RFID scan (demo)
+function testRFIDScan() {
+  const testData = {
+    name: "Nguyễn Văn A",
+    id: "STU001",
+    mssv: "B20DCCN001",
+  };
+
+  simulateRFIDScan(testData);
+}
+
 // Export functions for global access
 window.showSection = showSection;
 window.togglePasswordVisibility = togglePasswordVisibility;
@@ -669,3 +1305,35 @@ window.closeBorrowForm = closeBorrowForm;
 window.addBookRow = addBookRow;
 window.removeBookRow = removeBookRow;
 window.loadInfoData = loadInfoData;
+window.openReturnBookForm = openReturnBookForm;
+window.closeReturnBookForm = closeReturnBookForm;
+window.loadBorrowedBooks = loadBorrowedBooks;
+window.returnBook = returnBook;
+window.submitReturnBookForm = submitReturnBookForm;
+window.resetReturnForm = resetReturnForm;
+window.showNoBooksMessage = showNoBooksMessage;
+window.showBooksTable = showBooksTable;
+window.simulateRFIDScan = simulateRFIDScan;
+window.testRFIDScan = testRFIDScan;
+window.toggleAllBooks = toggleAllBooks;
+window.toggleBookSelection = toggleBookSelection;
+window.addToSelectedBooks = addToSelectedBooks;
+window.removeFromSelectedBooks = removeFromSelectedBooks;
+window.showSelectedBooksList = showSelectedBooksList;
+window.hideSelectedBooksList = hideSelectedBooksList;
+window.clearAllSelected = clearAllSelected;
+window.updateSelectedCount = updateSelectedCount;
+window.updateReturnButton = updateReturnButton;
+window.testBookRFIDScan = testBookRFIDScan;
+window.loadCurrentBorrowedBooks = loadCurrentBorrowedBooks;
+window.showNoCurrentBooksMessage = showNoCurrentBooksMessage;
+window.showCurrentBooksTable = showCurrentBooksTable;
+window.addToNewBorrowBooks = addToNewBorrowBooks;
+window.removeFromNewBorrowBooks = removeFromNewBorrowBooks;
+window.showNewBorrowBooksList = showNewBorrowBooksList;
+window.hideNewBorrowBooksList = hideNewBorrowBooksList;
+window.clearAllNewBorrow = clearAllNewBorrow;
+window.updateNewBorrowCount = updateNewBorrowCount;
+window.updateBorrowButton = updateBorrowButton;
+window.testBorrowRFIDScan = testBorrowRFIDScan;
+window.testBookBorrowRFIDScan = testBookBorrowRFIDScan;
