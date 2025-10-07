@@ -20,12 +20,14 @@ export async function loadStudentBorrowedBooks(studentId) {
   querySnapshot.forEach(doc => {
     const book = doc.data();
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${book.bookName || "Không rõ"}</td>
-      <td>${doc.id}</td>
-      <td style="text-align:center;">${book.borrowDate || "-"}</td>
-      <td style="text-align:center;">${book.status || "?"}</td>
-    `;
+   tr.innerHTML = `
+  <td>${book.bookName || "Không rõ"}</td>
+  <td>${doc.id}</td>
+  <td style="text-align:center;">${book.borrowDate || "-"}</td>
+  <td style="text-align:center;">${book.returnDate || "-"}</td>
+  <td style="text-align:center;">${book.status || "?"}</td>
+`;
+
     tbody.appendChild(tr);
     count++;
   });
