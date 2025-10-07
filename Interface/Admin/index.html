@@ -444,8 +444,8 @@
                             <tr style="background:linear-gradient(135deg,#B20000,#D32F2F);color:white;">
                                 <th style="padding:8px;text-align:left;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Tên Sách</th>
                                 <th style="padding:8px;text-align:left;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">ID</th>
-                                <!-- <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Ngày Mượn</th>
-                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Trạng Thái</th> -->
+                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Ngày Mượn</th>
+                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Trạng Thái</th>
                             </tr>
                         </thead>
                         <tbody id="currentBorrowedBooksTableBody">
@@ -496,7 +496,7 @@
                         <div id="booksContainer" style="max-height:300px;overflow-y:auto;border:2px solid #e1e5e9;border-radius:8px;padding:10px;background:rgba(248,249,250,0.8);">
                             <!-- Sách đầu tiên -->
                              <div style="display:flex;gap:10px;">
-                            <div style="flex:1;">
+                            <!-- <div style="flex:1;">
                                 <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.9rem;">Ngày Mượn:</label>
                                 <input type="date" id="borrowDate" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:8px;font-size:0.9rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'">
                             </div>
@@ -504,7 +504,7 @@
                             <div style="flex:1;">
                                 <label style="display:block;margin-bottom:5px;color:#333;font-weight:500;font-size:0.9rem;">Ngày Trả:</label>
                                 <input type="date" id="returnDate" required style="width:100%;padding:8px 12px;border:2px solid #e1e5e9;border-radius:8px;font-size:0.9rem;transition:all 0.3s;box-sizing:border-box;" onfocus="this.style.borderColor='#B20000';this.style.boxShadow='0 0 0 3px rgba(178,0,0,0.1)'" onblur="this.style.borderColor='#e1e5e9';this.style.boxShadow='none'">
-                            </div>
+                            </div> -->
                         </div>
                             <div class="book-row" style="display:flex;gap:8px;margin-bottom:10px;align-items:end;padding:10px;background:white;border-radius:6px;border:1px solid #e1e5e9;transition:all 0.3s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
                                 
@@ -1367,8 +1367,18 @@ function openBorrowForm() {
             document.getElementById('changePasswordForm').reset();
         }
     </script>
+    
+</script>
+    <script type="module" src="../../Web/firebase/studentborrow.js"></script>
     <script type="module" src="../../Web/firebase/addbook.js"></script>
     <script type="module" src="../../Web/firebase/borrow.js"></script>
+    <script type="module">
+     import { loadStudentBorrowedBooks } from '../../Web/firebase/studentborrow.js';
+
+  // Gọi hàm sau khi quét RFID hoặc khi cần hiển thị sách
+     //const studentId = "4299DF00"; // 👈 thay bằng ID thực tế từ RFID
+    loadStudentBorrowedBooks(studentId);
+</script>
     <script src="main.js"></script>
    
     <!-- NÚT CHATBOT -->
