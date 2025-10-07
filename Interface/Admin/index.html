@@ -444,8 +444,8 @@
                             <tr style="background:linear-gradient(135deg,#B20000,#D32F2F);color:white;">
                                 <th style="padding:8px;text-align:left;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Tên Sách</th>
                                 <th style="padding:8px;text-align:left;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">ID</th>
-                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Ngày Mượn</th>
-                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Trạng Thái</th>
+                                <!-- <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Ngày Mượn</th>
+                                <th style="padding:8px;text-align:center;border:1px solid #ddd;font-size:0.8rem;font-weight:600;">Trạng Thái</th> -->
                             </tr>
                         </thead>
                         <tbody id="currentBorrowedBooksTableBody">
@@ -478,13 +478,11 @@
                                 </button>
                             </div>
                         </div>
-                        
-<div style="display: flex; gap: 20px; margin-top: 10px;">
+  <div style="display: flex; gap: 20px; margin-top: 10px;">
   <div style="flex: 1;">
     <label for="borrowDate">Ngày mượn:</label>
     <input type="date" id="borrowDate" name="borrowDate" required style="width: 100%;">
   </div>
-
   <div style="flex: 1;">
     <label for="returnDate">Ngày trả:</label>
     <input type="date" id="returnDate" name="returnDate" required style="width: 100%;">
@@ -1133,15 +1131,13 @@
             });
         });
 
-        function openBorrowForm() {
+function openBorrowForm() {
   const modal = document.getElementById('borrowModal');
   modal.style.display = 'flex';
 
-  // 🟢 Tự động đặt ngày mượn là hôm nay
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('borrowDate').value = today;
 
-  // 🟢 Tự động đặt ngày trả là 14 ngày sau
   const returnDate = new Date();
   returnDate.setDate(returnDate.getDate() + 14);
   document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
@@ -1157,26 +1153,49 @@
 
         
         
-        // Hàm xử lý submit form
-        function submitBorrowForm(event) {
-            event.preventDefault();
-            
-            const formData = {
-                studentName: document.getElementById('studentName').value,
-                studentId: document.getElementById('studentId').value,
-                bookId: document.getElementById('bookId').value,
-                bookName: document.getElementById('bookNameBorrow').value,
-                borrowDate: document.getElementById('borrowDate').value,
-                returnDate: document.getElementById('returnDate').value
-            };
-            
-            // Hiển thị thông báo thành công
-            alert('Đã mượn sách thành công!\n\nThông tin mượn sách:\n- Tên: ' + formData.studentName + '\n- ID Sinh Viên: ' + formData.studentId + '\n- ID Sách: ' + formData.bookId + '\n- Tên Sách: ' + formData.bookName + '\n- Ngày mượn: ' + formData.borrowDate + '\n- Ngày trả: ' + formData.returnDate);
-            
-            // Đóng form
-            closeBorrowForm();
-        }
-        
+     function submitBorrowForm(event) {
+  event.preventDefault();
+
+  // Helper để lấy giá trị an toàn từ input
+  const getValue = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+  };
+
+  const formData = {
+    studentName: getValue("studentName"),
+    studentId: getValue("studentId"),
+    bookId: getValue("bookId"),
+    bookName: getValue("bookNameBorrow"),
+    borrowDate: getValue("borrowDate"),
+    returnDate: getValue("returnDate")
+  };
+
+  // Kiểm tra dữ liệu bắt buộc
+  if (!formData.studentName || !formData.studentId || !formData.bookId || !formData.bookName || !formData.borrowDate || !formData.returnDate) {
+    alert("⚠️ Vui lòng nhập đầy đủ thông tin mượn sách!");
+    return;
+  }
+
+  // Hiển thị thông báo thành công
+  alert(
+    `📚 Đã mượn sách thành công!\n\nThông tin mượn sách:\n` +
+    `- Tên: ${formData.studentName}\n` +
+    `- ID Sinh Viên: ${formData.studentId}\n` +
+    `- ID Sách: ${formData.bookId}\n` +
+    `- Tên Sách: ${formData.bookName}\n` +
+    `- Ngày mượn: ${formData.borrowDate}\n` +
+    `- Ngày trả: ${formData.returnDate}`
+  );
+
+  // Reset form nếu cần
+  const form = document.getElementById("borrowForm");
+  if (form) form.reset();
+
+  // Đóng form
+  closeBorrowForm();
+}
+
         // Đóng modal khi click bên ngoài
         document.getElementById('borrowModal').addEventListener('click', function(e) {
             if (e.target === this) {
