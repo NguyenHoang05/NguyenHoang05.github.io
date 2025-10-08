@@ -67,7 +67,9 @@ function showSection(sectionName) {
             break;
         case 'Proflie':
             targetSectionId = 'profileSection';
-            loadProfile();
+            if (typeof loadStudentProfile === 'function') {
+                loadStudentProfile();
+            }
             break;
         case 'Help':
             targetSectionId = 'helpSection';
@@ -162,51 +164,20 @@ function setupFAQListeners() {
 
 // Load dữ liệu ban đầu
 function loadInitialData() {
-    // Load profile information
-    loadProfile();
+    // Load profile information (realtime from Web/firebase/student/profile.js)
+    if (typeof loadStudentProfile === 'function') {
+        loadStudentProfile();
+    }
     
-    // Load borrowed books
-    loadBorrowedBooks();
+    // Load borrowed books: handled by borrowsd.js (avoid duplicate renders)
     
-    // Load favorite books
-    loadFavorites();
+    // Load favorite books (keep existing placeholder)
 }
 
 // Load thông tin profile
-function loadProfile() {
-    // Lấy ID user từ localStorage
-    const userId = localStorage.getItem('iduser');
-    if (!userId) {
-        console.error('User ID not found');
-        return;
-    }
-    
-    // Load profile từ Firebase (sẽ được implement sau)
-    console.log('Loading profile for user:', userId);
-    
-    // Mock data for now
-    const mockProfile = {
-        name: 'Nguyễn Văn A',
-        studentId: '2021001',
-        className: 'CNTT01',
-        status: 'Hoạt động'
-    };
-    
-    updateProfileDisplay(mockProfile);
-}
+// Xóa mock profile; dữ liệu đã do profile.js cập nhật realtime
 
-// Cập nhật hiển thị profile
-function updateProfileDisplay(profile) {
-    const nameElement = document.getElementById('studentName');
-    const idElement = document.getElementById('studentId');
-    const classElement = document.getElementById('studentClass');
-    const statusElement = document.getElementById('studentStatus');
-    
-    if (nameElement) nameElement.textContent = profile.name;
-    if (idElement) idElement.textContent = profile.studentId;
-    if (classElement) classElement.textContent = profile.className;
-    if (statusElement) statusElement.textContent = profile.status;
-}
+// Bỏ hàm cập nhật mock profile; giữ chỗ nếu cần dùng lại sau này
 
 // Load sách đã mượn
 function loadBorrowedBooks() {

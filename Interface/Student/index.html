@@ -696,6 +696,9 @@
               <p style="color: #666; font-size: 1rem; margin-bottom: 4px">
                 <strong>Lớp:</strong> <span id="studentClass"></span>
               </p>
+              <p style="color: #666; font-size: 1rem; margin-bottom: 4px">
+                <strong>Email:</strong> <span id="studentEmail"></span>
+              </p>
               <p style="color: #666; font-size: 1rem">
                 <strong>Trạng thái:</strong>
                 <span
@@ -705,6 +708,42 @@
                 >
               </p>
             </div>
+          </div>
+        </div>
+        <!-- Bảng sách đã mượn - nằm TRONG profileSection -->
+        <div
+          style="
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 1100px;
+            margin: 40px auto;
+          "
+        >
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="font-size:1.6rem;font-weight:700;color:#1a1a1a;margin:0;display:flex;align-items:center;">
+              <span style="font-size:1.8rem;margin-right:8px">📚</span>
+              Sách đã mượn
+            </h3>
+            <input oninput="filterStudentBorrowedBooks(this.value)" placeholder="Tìm sách đã mượn theo tên hoặc ID..." style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;min-width:280px;font-size:0.95rem;" />
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:separate;border-spacing:0;background:rgba(255,255,255,0.6);border-radius:14px;overflow:hidden;font-size:1rem;">
+              <thead>
+                <tr style="background:linear-gradient(135deg,#4d5bf9,#6a82fb)">
+                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem;width:80px">#</th>
+                  <th style="padding:18px 22px;text-align:left;color:white;font-weight:600;font-size:1rem">ID Sách</th>
+                  <th style="padding:18px 22px;text-align:left;color:white;font-weight:600;font-size:1rem">Tên sách</th>
+                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Ngày mượn</th>
+                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Hạn trả</th>
+                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="borrowedBooksTableBody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -721,124 +760,7 @@
         src="../../Web/firebase/student/borrowsd.js"
       ></script>
 
-      <!-- Bảng sách đã mượn -->
-      <div
-        style="
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(12px);
-          border-radius: 20px;
-          padding: 32px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          max-width: 1100px; /* tăng chiều rộng để bằng với profile */
-          margin: 40px auto;
-        "
-      >
-        <!-- Tiêu đề -->
-        <h3
-          style="
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-          "
-        >
-          <span style="font-size: 1.8rem; margin-right: 8px">📚</span>
-          Sách đã mượn
-        </h3>
-
-        <!-- Bảng -->
-        <div style="overflow-x: auto">
-          <table
-            style="
-              width: 100%;
-              border-collapse: separate;
-              border-spacing: 0;
-              background: rgba(255, 255, 255, 0.6);
-              border-radius: 14px;
-              overflow: hidden;
-              font-size: 1rem;
-            "
-          >
-            <thead>
-              <tr style="background: linear-gradient(135deg, #4d5bf9, #6a82fb)">
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: center;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                    width: 80px;
-                  "
-                >
-                  #
-                </th>
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: left;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                  "
-                >
-                  ID Sách
-                </th>
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: left;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                  "
-                >
-                  Tên sách
-                </th>
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: center;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                  "
-                >
-                  Ngày mượn
-                </th>
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: center;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                  "
-                >
-                  Hạn trả
-                </th>
-                <th
-                  style="
-                    padding: 18px 22px;
-                    text-align: center;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 1rem;
-                  "
-                >
-                  Trạng thái
-                </th>
-              </tr>
-            </thead>
-            <tbody id="borrowedBooksTableBody">
-              <!-- borrowsd.js sẽ load dữ liệu -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <!-- (đã xóa bảng mượn sách ngoài Profile để tránh hiện ở các phần khác) -->
 
       <!-- Phần giao diện Help (Trợ giúp) -->
       <div id="helpSection" style="display: none">
@@ -2225,7 +2147,8 @@
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
     ></script>
     <script src="script.js"></script>
-    <script type="module" src="borrowed.js"></script>
+    <!-- removed duplicate borrowed renderer to avoid overlapping; borrowsd.js handles it in Profile -->
+    <!-- <script type="module" src="borrowed.js"></script> -->
     <script type="module" src="search-autocomplete.js"></script>
     <script>
       // Xử lý chuyển tab và hiển thị nội dung tương ứng

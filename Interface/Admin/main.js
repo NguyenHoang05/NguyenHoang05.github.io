@@ -75,7 +75,7 @@ function showSection(sectionName) {
       targetSectionId = "infoSection";
       loadInfoData();
       break;
-    case "History":
+    case "Thống kê":
       targetSectionId = "historySection";
       loadHistory();
       break;

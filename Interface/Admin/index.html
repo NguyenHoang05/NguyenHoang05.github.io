@@ -87,8 +87,8 @@
             </li>
             <li class="list">
                 <a href="#" onclick="showSection('historySection')">
-                    <span class="icon"><ion-icon name="time-outline"></ion-icon></span>
-                    <span class="title">History</span>
+                    <span class="icon"><ion-icon name="stats-chart-outline"></ion-icon></span>
+                    <span class="title">Thống kê</span>
                 </a>
             </li>
             <li class="list">
@@ -247,7 +247,7 @@
 </body>
 </html>
 
-<!-- Phần lịch sử mượn trả (History) -->
+<!-- Phần thống kê mượn trả (Thống kê) -->
 <div id="historySection" style="display:none">
   <div style="display:flex;justify-content:center;align-items:center;margin-bottom:40px;">
     <h2 style="color:#1a1a1a;text-align:center;font-size:2.5rem;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,0.1);letter-spacing:-0.5px;">Lịch Sử Mượn Trả</h2>
@@ -1085,7 +1085,7 @@
                     console.log('Clicking on Thông tin tab');
                     showSection('infoSection');
                     loadInfoData(); // Sử dụng hàm riêng cho infoSection
-                } else if (title === 'History') {
+                } else if (title === 'Thống kê') {
                     showSection('historySection');
                     loadHistory();
                 } else if (title === 'List') {

@@ -1,5 +1,8 @@
 console.log("✅ search-autocomplete.js loaded");
 
+import { db } from '../../Web/firebase/firebase.js';
+import { collection, getDocs, query, limit, where, orderBy, startAt, endAt } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
 // Global variables
 let allBooks = [];
 let filteredBooks = [];
@@ -11,8 +14,16 @@ async function initializeSearch() {
     console.log('Initializing search functionality...');
     
     try {
-        // Load sample books data (replace with Firebase later)
-        loadSampleBooks();
+        // Load minimal books snapshot from Firestore for fast suggestions
+        const booksRef = collection(db, 'books');
+        const snap = await getDocs(query(booksRef, limit(300)));
+        allBooks = snap.docs.map(d => ({
+            id: d.id,
+            title: d.data().title || d.data().bookName || d.id,
+            author: d.data().author || '',
+            genre: d.data().genre || '',
+            status: d.data().status || 'Còn'
+        }));
         console.log(`Loaded ${allBooks.length} books for search`);
         
         // Setup search event listeners
@@ -23,59 +34,7 @@ async function initializeSearch() {
     }
 }
 
-// Load sample books (replace with Firebase integration)
-function loadSampleBooks() {
-    allBooks = [
-        {
-            id: "BK001",
-            title: "JavaScript Programming",
-            author: "John Doe",
-            genre: "Công nghệ",
-            shelf: "Tủ A - Kệ 3",
-            status: "Còn"
-        },
-        {
-            id: "BK002", 
-            title: "Web Development Guide",
-            author: "Jane Smith",
-            genre: "Công nghệ",
-            shelf: "Tủ A - Kệ 2",
-            status: "Còn"
-        },
-        {
-            id: "BK003",
-            title: "Database Management",
-            author: "Mike Johnson",
-            genre: "Công nghệ",
-            shelf: "Tủ B - Kệ 1",
-            status: "Đã mượn"
-        },
-        {
-            id: "BK004",
-            title: "Lập trình Python",
-            author: "Nguyễn Văn A",
-            genre: "Công nghệ",
-            shelf: "Tủ A - Kệ 4",
-            status: "Còn"
-        },
-        {
-            id: "BK005",
-            title: "Machine Learning Basics",
-            author: "Dr. Sarah Wilson",
-            genre: "Trí tuệ nhân tạo",
-            shelf: "Tủ C - Kệ 2",
-            status: "Còn"
-        },
-        {
-            id: "BK006",
-            title: "React Development",
-            author: "Alex Chen",
-            genre: "Frontend",
-            shelf: "Tủ A - Kệ 5",
-            status: "Còn"
-        }
-    ];
-}
+// removed sample data
 
 // Setup event listeners
 function setupSearchEventListeners() {
@@ -101,7 +60,7 @@ function setupSearchEventListeners() {
 }
 
 // Handle search input
-function handleSearchInput(event) {
+async function handleSearchInput(event) {
     const query = event.target.value.trim();
     
     // Clear previous timeout
@@ -110,16 +69,47 @@ function handleSearchInput(event) {
     }
     
     // Debounce search
-    searchTimeout = setTimeout(() => {
+    searchTimeout = setTimeout(async () => {
         if (query.length >= 2) {
+            // Try client-side first; if empty, do a Firestore prefix search fallback
             searchBooks(query);
+            if (filteredBooks.length === 0) {
+                try {
+                    const booksRef = collection(db, 'books');
+                    // Simple contains: fetch more docs then filter locally
+                    const snap = await getDocs(queryFn(booksRef));
+                    const extra = snap.docs.map(d => ({
+                        id: d.id,
+                        title: d.data().title || d.data().bookName || d.id,
+                        author: d.data().author || '',
+                        genre: d.data().genre || '',
+                        status: d.data().status || 'Còn'
+                    }));
+                    allBooks = mergeUniqueById(allBooks, extra).slice(0, 600);
+                    searchBooks(query);
+                } catch {}
+            }
             showSuggestions();
-        } else if (query.length === 0) {
-            hideSuggestions();
         } else {
             hideSuggestions();
         }
     }, 300);
+}
+
+// Helper to build a broad query (order + limit)
+function queryFn(col) {
+    try {
+        return query(col, orderBy('title'), limit(300));
+    } catch {
+        return query(col, limit(300));
+    }
+}
+
+function mergeUniqueById(a, b) {
+    const map = new Map();
+    a.forEach(x => map.set(x.id, x));
+    b.forEach(x => { if (!map.has(x.id)) map.set(x.id, x); });
+    return Array.from(map.values());
 }
 
 // Search books based on query
@@ -482,9 +472,8 @@ function requestBook(bookId) {
 function performSearch() {
     const searchInput = document.getElementById('bookSearchInput');
     const query = searchInput.value.trim();
-    
     if (query.length < 2) {
-        alert('Vui lòng nhập ít nhất 2 ký tự để tìm kiếm!');
+        hideSuggestions();
         return;
     }
     
@@ -509,7 +498,7 @@ function showSearchResults(query) {
     });
     
     if (results.length === 0) {
-        alert(`Không tìm thấy sách nào với từ khóa: "${query}"`);
+        hideSuggestions();
         return;
     }
     
