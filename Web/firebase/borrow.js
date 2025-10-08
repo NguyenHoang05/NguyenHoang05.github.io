@@ -89,13 +89,13 @@ window.openBorrowForm = function () {
   });
 };
 
-// 🔔 Theo dõi dữ liệu RFID để tự động mở form
-const tempRef = ref(rtdb, "temp");
+// 🔔 Theo dõi RFID cho phần "Mượn": chỉ mở khi có cờ explicit để tránh xung đột
+// ESP32 có thể đặt temp/openBorrow = true để mở form mượn
 import("https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js").then(({ onValue }) => {
-  onValue(tempRef, (snapshot) => {
-    if (!snapshot.exists()) return;
+  onValue(ref(rtdb, "temp/openBorrow"), (snapshot) => {
+    if (!snapshot.exists() || !snapshot.val()) return;
     const modal = document.getElementById("borrowModal");
-    if (modal.style.display !== "flex") openBorrowForm();
+    if (modal && modal.style.display !== "flex") openBorrowForm();
   });
 });
 
@@ -217,8 +217,10 @@ window.submitBorrowForm = async function (event) {
       results.push(b.bookName);
     }
 
-    // Xóa dữ liệu tạm từ Realtime DB
-    await remove(ref(rtdb, "temp"));
+    // Chỉ xóa dữ liệu tạm SAU khi mượn thành công
+    await remove(ref(rtdb, "temp/student")).catch(() => {});
+    await remove(ref(rtdb, "temp/books")).catch(() => {});
+    await remove(ref(rtdb, "temp/openBorrow")).catch(() => {});
 
     alert(`📚 Đã mượn thành công ${results.length} cuốn:\n${results.join("\n")}`);
 

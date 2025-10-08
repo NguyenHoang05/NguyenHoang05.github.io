@@ -10,24 +10,59 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // ======================================================
-// 🔹 Lắng nghe dữ liệu quét RFID sinh viên từ node temp
+// 🔹 Lắng nghe RFID: tách node student/book để tránh xung đột với "Mượn"
+//    ESP32 nên đẩy:
+//      temp/student => { iduser: 'SV001', mssv: '...', username: '...' }
+//      temp/book    => { id: 'BOOK001', title: '...' }
 // ======================================================
-onValue(ref(rtdb, "temp"), async (snapshot) => {
-  const temp = snapshot.val();
-  if (!temp || !temp.ID) return;
+onValue(ref(rtdb, "temp/student"), async (snapshot) => {
+  const s = snapshot.val();
+  if (!s) return;
 
-  const studentId = temp.ID;
-  console.log("📡 Quét RFID sinh viên:", studentId);
+  const studentId = s.iduser || s.id || s.ID || null;
+  if (!studentId) return;
+  console.log("📡 [Return] Quét RFID sinh viên:", studentId);
 
-  // Điền vào form
-  document.getElementById("returnStudentId").value = studentId;
+  // Mở modal nếu chưa mở
+  const modal = document.getElementById("returnBookModal");
+  if (modal && modal.style.display !== "flex") {
+    window.openReturnBookForm();
+  }
 
-  // Nếu có dữ liệu sinh viên, tự động tải thông tin & sách đang mượn
+  // Điền form
+  const idInput = document.getElementById("returnStudentId");
+  if (idInput) idInput.value = studentId;
+
   await loadStudentInfo(studentId);
   await loadReturnBookList(studentId);
 
-  // Xóa node temp sau khi đọc xong
-  await remove(ref(rtdb, "temp"));
+  // Dọn dẹp node temp/student sau khi xử lý
+  // Không xóa ngay; sẽ xóa sau khi người dùng nhấn Submit trả sách
+  // await remove(ref(rtdb, "temp/student")).catch(() => {});
+});
+
+// Khi quét RFID sách, tự động tick/untick trong danh sách bên trái
+onValue(ref(rtdb, "temp/book"), async (snapshot) => {
+  const b = snapshot.val();
+  if (!b) return;
+
+  const scannedBookId = b.id || b.bookId || b.ID || null;
+  if (!scannedBookId) return;
+  console.log("📡 [Return] Quét RFID sách:", scannedBookId);
+
+  const checkbox = document.querySelector(
+    `.bookCheckbox[data-bookid='${scannedBookId}']`
+  );
+
+  if (checkbox) {
+    // Toggle chọn sách
+    checkbox.checked = !checkbox.checked;
+    window.toggleSelectedBook(checkbox);
+  }
+
+  // Dọn dẹp node temp/book
+  // Không xóa ngay; sẽ xóa sau khi người dùng nhấn Submit trả sách
+  // await remove(ref(rtdb, "temp/book")).catch(() => {});
 });
 
 // ======================================================
@@ -220,6 +255,13 @@ window.submitReturnBookForm = async function(e) {
   }
 
   alert("✅ Trả thành công " + selected.length + " cuốn sách!");
+  // Xóa dữ liệu tạm SAU khi trả thành công
+  try {
+    await remove(ref(rtdb, "temp/student"));
+  } catch {}
+  try {
+    await remove(ref(rtdb, "temp/book"));
+  } catch {}
   clearAllSelected();
   const studentId = document.getElementById("returnStudentId").value.trim();
   loadReturnBookList(studentId);
@@ -246,6 +288,11 @@ async function processReturnBook(historyId) {
         status: "Đã trả",
         actualReturnDate: returnDate
       }),
+    // Cập nhật user subcollection (Firestore)
+    updateDoc(doc(db, "users", studentId, "books", bookId), {
+      status: "Đã trả",
+      actualReturnDate: returnDate
+    }).catch(() => {}),
       updateDoc(doc(db, "books", bookId), { status: "Còn" }),
       update(ref(rtdb, `books/${bookId}`), { status: "Còn" }),
       remove(ref(rtdb, `users/${studentId}/books/${bookId}`))
