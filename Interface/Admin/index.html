@@ -191,7 +191,7 @@
             <!-- Ô tìm kiếm sinh viên -->
             <div style="max-width:400px;margin:0 auto 20px auto;position:relative;">
                 <input type="text" id="studentSearch" placeholder="Tìm kiếm tên sinh viên..." autocomplete="off"
-                    style="width:100%;padding:10px 14px;border:2px solid #B20000;border-radius:8px;font-size:1rem;box-sizing:border-box;">
+                    style="width:100%;padding:10px 14px;border:2px solid #B20000;border-radius:8px;font-size:1rem;box-sizing:border-box;" oninput="filterInfoByName(this.value)">
                 <ul id="searchSuggestions" style="list-style:none;padding:0;margin:0;position:absolute;top:42px;left:0;width:100%;background:white;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.08);z-index:10;display:none;"></ul>
             </div>
 
@@ -251,6 +251,11 @@
 <div id="historySection" style="display:none">
   <div style="display:flex;justify-content:center;align-items:center;margin-bottom:40px;">
     <h2 style="color:#1a1a1a;text-align:center;font-size:2.5rem;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,0.1);letter-spacing:-0.5px;">Lịch Sử Mượn Trả</h2>
+  </div>
+
+  <!-- Tìm kiếm nhanh theo tên sinh viên hoặc tên sách -->
+  <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin:10px 0 20px;">
+    <input id="historySearchInput" placeholder="Tìm theo tên sinh viên hoặc tên sách..." style="width:60%;max-width:560px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.95rem;" oninput="filterHistoryTable(this.value)">
   </div>
 
   <!-- Bảng lịch sử -->

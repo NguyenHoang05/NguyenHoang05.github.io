@@ -5,6 +5,8 @@ import { db, rtdb } from './firebase.js';
 import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
+let __historyCache = [];
+
 // Load lịch sử mượn trả
 window.loadHistory = async function() {
     try {
@@ -22,8 +24,8 @@ window.loadHistory = async function() {
         
         console.log(`✅ Đã tải ${history.length} bản ghi lịch sử từ Firestore`);
         
-        // Hiển thị lịch sử
-        displayHistory(history);
+        __historyCache = history;
+        displayHistory(__historyCache);
         
     } catch (error) {
         console.error("❌ Lỗi khi tải lịch sử:", error);
@@ -41,7 +43,8 @@ window.loadHistory = async function() {
                         .slice(0, 100); // Giới hạn 100 bản ghi gần nhất
                     
                     console.log(`✅ Đã tải ${history.length} bản ghi lịch sử từ Realtime DB`);
-                    displayHistory(history);
+                    __historyCache = history;
+                    displayHistory(__historyCache);
                 } else {
                     console.log("📭 Không có dữ liệu lịch sử");
                     displayHistory([]);
@@ -138,6 +141,20 @@ function displayHistory(history) {
     
     console.log(`✅ Đã hiển thị ${history.length} bản ghi lịch sử`);
 }
+
+// Lọc hiển thị bảng lịch sử theo tên SV hoặc tên sách (client-side)
+window.filterHistoryTable = function(keyword) {
+    const kw = (keyword || '').toLowerCase().trim();
+    if (!kw) {
+        displayHistory(__historyCache);
+        return;
+    }
+    const filtered = __historyCache.filter(r =>
+        (r.studentName || '').toLowerCase().includes(kw) ||
+        (r.bookName || '').toLowerCase().includes(kw)
+    );
+    displayHistory(filtered);
+};
 
 // Format date từ string sang định dạng Việt Nam
 function formatDate(dateString) {

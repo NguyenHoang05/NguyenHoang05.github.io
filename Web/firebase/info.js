@@ -15,6 +15,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // Load thông tin hệ thống (sử dụng cùng dữ liệu như History)
+let __infoCache = [];
+
 window.loadInfoData = async function () {
   try {
     console.log("📊 Đang tải thông tin hệ thống...");
@@ -31,8 +33,8 @@ window.loadInfoData = async function () {
 
     console.log(`✅ Đã tải ${infoData.length} bản ghi thông tin từ Firestore`);
 
-    // Hiển thị thông tin
-    displayInfoData(infoData);
+    __infoCache = infoData;
+    displayInfoData(__infoCache);
   } catch (error) {
     console.error("❌ Lỗi khi tải thông tin:", error);
 
@@ -51,7 +53,8 @@ window.loadInfoData = async function () {
           console.log(
             `✅ Đã tải ${infoData.length} bản ghi thông tin từ Realtime DB`
           );
-          displayInfoData(infoData);
+          __infoCache = infoData;
+          displayInfoData(__infoCache);
         } else {
           console.log("📭 Không có dữ liệu thông tin");
           displayInfoData([]);
@@ -135,6 +138,17 @@ function displayInfoData(infoData) {
 
   console.log(`✅ Đã hiển thị ${uniqueData.length} sinh viên duy nhất`);
 }
+
+// Tìm kiếm theo tên sinh viên trong Info (client-side)
+window.filterInfoByName = function(nameKeyword) {
+  const kw = (nameKeyword || '').toLowerCase().trim();
+  if (!kw) {
+    displayInfoData(__infoCache);
+    return;
+  }
+  const filtered = __infoCache.filter(r => (r.studentName || '').toLowerCase().includes(kw));
+  displayInfoData(filtered);
+};
 
 // Format date từ string sang định dạng Việt Nam
 function formatDate(dateString) {

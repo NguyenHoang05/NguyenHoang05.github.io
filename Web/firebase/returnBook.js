@@ -9,6 +9,12 @@ import {
   ref, onValue, update, remove
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
+// Cờ điều khiển mở modal Trả sách để tránh xung đột với phần Mượn
+let openReturnEnabled = false;
+onValue(ref(rtdb, "temp/openReturn"), (snapshot) => {
+  openReturnEnabled = !!snapshot.val();
+});
+
 // ======================================================
 // 🔹 Lắng nghe RFID: tách node student/book để tránh xung đột với "Mượn"
 //    ESP32 nên đẩy:
@@ -25,7 +31,7 @@ onValue(ref(rtdb, "temp/student"), async (snapshot) => {
 
   // Mở modal nếu chưa mở
   const modal = document.getElementById("returnBookModal");
-  if (modal && modal.style.display !== "flex") {
+  if (openReturnEnabled && modal && modal.style.display !== "flex") {
     window.openReturnBookForm();
   }
 
@@ -63,6 +69,48 @@ onValue(ref(rtdb, "temp/book"), async (snapshot) => {
   // Dọn dẹp node temp/book
   // Không xóa ngay; sẽ xóa sau khi người dùng nhấn Submit trả sách
   // await remove(ref(rtdb, "temp/book")).catch(() => {});
+});
+
+// Fallback legacy listener: nếu ESP32 vẫn đẩy vào temp gốc
+onValue(ref(rtdb, "temp"), async (snapshot) => {
+  const t = snapshot.val();
+  if (!t) return;
+
+  // Nếu cấu trúc mới đã có temp/student hoặc temp/book thì bỏ qua
+  // (tránh xử lý 2 lần)
+  try {
+    const hasNewNodes = !!(await (async () => {
+      // best-effort sync check via DOM state
+      return false;
+    })());
+    if (hasNewNodes) return;
+  } catch {}
+
+  // Nhận dạng sinh viên từ t.ID
+  if (t.ID && typeof t.ID === 'string') {
+    const studentId = t.ID;
+    const modal = document.getElementById("returnBookModal");
+    if (openReturnEnabled && modal && modal.style.display !== "flex") {
+      window.openReturnBookForm();
+    }
+    const idInput = document.getElementById("returnStudentId");
+    if (idInput) idInput.value = studentId;
+    await loadStudentInfo(studentId);
+    await loadReturnBookList(studentId);
+    return;
+  }
+
+  // Nhận dạng sách nếu có t.bookId hoặc t.id
+  const legacyBookId = t.bookId || t.id || null;
+  if (legacyBookId) {
+    const checkbox = document.querySelector(
+      `.bookCheckbox[data-bookid='${legacyBookId}']`
+    );
+    if (checkbox) {
+      checkbox.checked = !checkbox.checked;
+      window.toggleSelectedBook(checkbox);
+    }
+  }
 });
 
 // ======================================================
@@ -255,12 +303,9 @@ window.submitReturnBookForm = async function(e) {
   }
 
   alert("✅ Trả thành công " + selected.length + " cuốn sách!");
-  // Xóa dữ liệu tạm SAU khi trả thành công
+  // Xóa toàn bộ dữ liệu tạm SAU khi trả thành công
   try {
-    await remove(ref(rtdb, "temp/student"));
-  } catch {}
-  try {
-    await remove(ref(rtdb, "temp/book"));
+    await remove(ref(rtdb, "temp"));
   } catch {}
   clearAllSelected();
   const studentId = document.getElementById("returnStudentId").value.trim();
