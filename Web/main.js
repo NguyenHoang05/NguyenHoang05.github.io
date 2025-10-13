@@ -1,3 +1,51 @@
+// analysis.js merged: compute real numbers for Analysis and Home
+import { db } from './firebase/firebase.js';
+import { collection, getCountFromServer, query, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+async function updateCounts() {
+  try {
+    // Books total
+    const totalSnap = await getCountFromServer(collection(db, 'books'));
+    const totalBooks = totalSnap.data().count || 0;
+
+    // Borrowing count (history status == Đang mượn)
+    const borrowingSnap = await getCountFromServer(query(collection(db, 'history'), where('status', '==', 'Đang mượn')));
+    const borrowing = borrowingSnap.data().count || 0;
+
+    // Available books (status Còn)
+    const availableSnap = await getCountFromServer(query(collection(db, 'books'), where('status', '==', 'Còn')));
+    const available = availableSnap.data().count || Math.max(0, totalBooks - borrowing);
+
+    // Users
+    const usersSnap = await getCountFromServer(collection(db, 'users'));
+    const users = usersSnap.data().count || 0;
+
+    // Update Home
+    const hTotal = document.getElementById('homeTotalBooks');
+    const hBorrow = document.getElementById('homeBorrowingBooks');
+    const hUsers = document.getElementById('homeUsersCount');
+    if (hTotal) hTotal.textContent = String(totalBooks);
+    if (hBorrow) hBorrow.textContent = String(borrowing);
+    if (hUsers) hUsers.textContent = String(users);
+
+    // Update Analysis
+    const aTotal = document.getElementById('analysisTotalBooks');
+    const aAvail = document.getElementById('analysisAvailableBooks');
+    const aBorrow = document.getElementById('analysisBorrowingBooks');
+    if (aTotal) aTotal.textContent = String(totalBooks);
+    if (aAvail) aAvail.textContent = String(available);
+    if (aBorrow) aBorrow.textContent = String(borrowing);
+  } catch (e) {
+    console.error('Failed to update analysis counts:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateCounts();
+});
+
+window.refreshAnalysisCounts = updateCounts;
+
 const container = document.querySelector('.container');
 const registerBtn = document.querySelector('.register-btn');
 const loginBtn = document.querySelector('.login-btn');

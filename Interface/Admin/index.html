@@ -169,15 +169,15 @@
             <!-- Thống kê nhanh -->
             <div style="margin-top:50px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap;">
                 <div style="background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);border-radius:16px;padding:24px;min-width:200px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1);border:1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">1,250</div>
+                    <div id="homeTotalBooks" style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">0</div>
                     <div style="color:#666;font-size:0.95rem;">Tổng số sách</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);border-radius:16px;padding:24px;min-width:200px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1);border:1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">89</div>
+                    <div id="homeBorrowingBooks" style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">0</div>
                     <div style="color:#666;font-size:0.95rem;">Sách đang mượn</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);border-radius:16px;padding:24px;min-width:200px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1);border:1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">156</div>
+                    <div id="homeUsersCount" style="font-size:2rem;font-weight:700;color:#B20000;margin-bottom:8px;">0</div>
                     <div style="color:#666;font-size:0.95rem;">Sinh viên đăng ký</div>
                 </div>
             </div>
@@ -230,6 +230,7 @@
             <th style="padding:12px 8px;text-align:left;border:1px solid #ddd;font-size:0.9rem;font-weight:600;">ID</th>
             <th style="padding:12px 8px;text-align:left;border:1px solid #ddd;font-size:0.9rem;font-weight:600;">Tác giả</th>
             <th style="padding:12px 8px;text-align:left;border:1px solid #ddd;font-size:0.9rem;font-weight:600;">Thể loại</th>
+            <th style="padding:12px 8px;text-align:left;border:1px solid #ddd;font-size:0.9rem;font-weight:600;">Số lượng</th>
             <th style="padding:12px 8px;text-align:left;border:1px solid #ddd;font-size:0.9rem;font-weight:600;">Trạng thái</th>
           </tr>
         </thead>
@@ -244,6 +245,7 @@
 
   <!-- Link file JS riêng -->
   <script type="module" src="../../Web/firebase/listbook.js"></script>
+  <script type="module" src="../../Web/main.js"></script>
 </body>
 </html>
 
@@ -297,7 +299,7 @@
                     <div style="width:60px;height:60px;background:linear-gradient(135deg,#B20000,#D32F2F);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(178,0,0,0.3);position:relative;z-index:1;">
                         <ion-icon name="library-outline" style="font-size:1.8rem;color:white;"></ion-icon>
                     </div>
-                    <div style="font-size:2.5rem;font-weight:700;color:#B20000;margin-bottom:8px;position:relative;z-index:1;">1,250</div>
+                    <div id="analysisTotalBooks" style="font-size:2.5rem;font-weight:700;color:#B20000;margin-bottom:8px;position:relative;z-index:1;">0</div>
                     <div style="color:#666;font-size:1rem;font-weight:500;position:relative;z-index:1;">Tổng số sách</div>
                 </div>
                 
@@ -306,7 +308,7 @@
                     <div style="width:60px;height:60px;background:linear-gradient(135deg,#4CAF50,#66BB6A);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(76,175,80,0.3);position:relative;z-index:1;">
                         <ion-icon name="checkmark-circle-outline" style="font-size:1.8rem;color:white;"></ion-icon>
                     </div>
-                    <div style="font-size:2.5rem;font-weight:700;color:#4CAF50;margin-bottom:8px;position:relative;z-index:1;">1,161</div>
+                    <div id="analysisAvailableBooks" style="font-size:2.5rem;font-weight:700;color:#4CAF50;margin-bottom:8px;position:relative;z-index:1;">0</div>
                     <div style="color:#666;font-size:1rem;font-weight:500;position:relative;z-index:1;">Sách còn</div>
                 </div>
                 
@@ -315,7 +317,7 @@
                     <div style="width:60px;height:60px;background:linear-gradient(135deg,#FF9800,#FFB74D);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(255,152,0,0.3);position:relative;z-index:1;">
                         <ion-icon name="book-outline" style="font-size:1.8rem;color:white;"></ion-icon>
                     </div>
-                    <div style="font-size:2.5rem;font-weight:700;color:#FF9800;margin-bottom:8px;position:relative;z-index:1;">89</div>
+                    <div id="analysisBorrowingBooks" style="font-size:2.5rem;font-weight:700;color:#FF9800;margin-bottom:8px;position:relative;z-index:1;">0</div>
                     <div style="color:#666;font-size:1rem;font-weight:500;position:relative;z-index:1;">Sách đang mượn</div>
                 </div>
             </div>
@@ -938,6 +940,8 @@
                             Sách đã chọn trả
                         </h5>
                         <div id="selectedBooksContainer" style="overflow-x:auto;border:2px solid #e1e5e9;border-radius:8px;background:rgba(248,249,250,0.8);min-height:200px;max-height:300px;overflow-y:auto;">
+                            <!-- Ô tóm tắt sách quét gần nhất / cảnh báo -->
+                            <div id="selectedSummary" style="margin:12px;border:1px dashed #cdd6df;border-radius:8px;padding:10px;background:white;display:none;"></div>
                             <!-- Placeholder khi chưa chọn sách -->
                             <div id="noSelectedBooksMessage" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:#666;text-align:center;">
                                 <ion-icon name="checkmark-circle-outline" style="font-size:2.5rem;color:#ccc;margin-bottom:12px;"></ion-icon>

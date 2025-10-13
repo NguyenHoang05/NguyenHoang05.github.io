@@ -97,11 +97,13 @@ function displayBooks(books) {
       statusTextColor = "#1e40af"; // xanh dương đậm
     }
 
+    const quantity = typeof book.quantity === 'number' ? book.quantity : (book.quantity || 1);
     row.innerHTML = `
       <td style="padding:12px 8px;color:#333;font-weight:500;">${book.title || 'N/A'}</td>
       <td style="padding:12px 8px;color:#666;">${book.id || 'N/A'}</td>
       <td style="padding:12px 8px;color:#666;">${book.author || 'N/A'}</td>
       <td style="padding:12px 8px;color:#666;">${book.genre || 'N/A'}</td>
+      <td style="padding:12px 8px;color:#666;">${quantity}</td>
       <td style="padding:12px 8px;">
         <span style="
           padding:6px 12px;

@@ -48,27 +48,105 @@ onValue(ref(rtdb, "temp/student"), async (snapshot) => {
 });
 
 // Khi quét RFID sách, tự động tick/untick trong danh sách bên trái
+// Helper: extract bookId from various RTDB layouts
+function extractBookId(payload) {
+  if (!payload) return null;
+  // Simple form
+  if (typeof payload === 'object') {
+    if (payload.id || payload.bookId || payload.ID) {
+      return payload.id || payload.bookId || payload.ID;
+    }
+    // Nested like { book1: { id: '...' } } or any single child
+    const keys = Object.keys(payload);
+    if (keys.length === 1 && typeof payload[keys[0]] === 'object') {
+      const v = payload[keys[0]];
+      return v.id || v.bookId || v.ID || null;
+    }
+  }
+  return null;
+}
+
+// Support path temp/books exactly (plural)
+onValue(ref(rtdb, "temp/books"), async (snapshot) => {
+  const payload = snapshot.val();
+  console.log('[Return][temp/books] payload =', payload);
+  if (!payload) return;
+  let scannedBookId = extractBookId(payload);
+  if (!scannedBookId) {
+    // try iterate children
+    for (const k of Object.keys(payload)) {
+      const it = payload[k];
+      if (it && typeof it === 'object') {
+        scannedBookId = it.id || it.bookId || it.ID || null;
+        if (scannedBookId) break;
+      }
+    }
+  }
+  if (!scannedBookId) return;
+  console.log('📡 [Return] Quét RFID sách (temp/books):', scannedBookId);
+  const checkbox = findCheckboxByBookId(scannedBookId);
+  if (checkbox) {
+    const wasChecked = checkbox.checked;
+    checkbox.checked = true;
+    if (!wasChecked) window.toggleSelectedBook(checkbox);
+    hideWrongReturnMessage();
+    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
+  } else {
+    showWrongReturnMessage();
+    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
+  }
+});
+
 onValue(ref(rtdb, "temp/book"), async (snapshot) => {
   const b = snapshot.val();
   if (!b) return;
 
-  const scannedBookId = b.id || b.bookId || b.ID || null;
+  const scannedBookId = extractBookId(b);
+  console.log('[Return][temp/book] payload =', b, '→ scannedId =', scannedBookId);
   if (!scannedBookId) return;
   console.log("📡 [Return] Quét RFID sách:", scannedBookId);
 
-  const checkbox = document.querySelector(
-    `.bookCheckbox[data-bookid='${scannedBookId}']`
-  );
+  const checkbox = findCheckboxByBookId(scannedBookId);
 
   if (checkbox) {
-    // Toggle chọn sách
-    checkbox.checked = !checkbox.checked;
-    window.toggleSelectedBook(checkbox);
+    // Đúng sách đang mượn -> auto chọn (không toggle)
+    const wasChecked = checkbox.checked;
+    checkbox.checked = true;
+    if (!wasChecked) {
+      window.toggleSelectedBook(checkbox);
+    }
+    hideWrongReturnMessage();
+    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
+  } else {
+    // Không khớp với danh sách đang mượn của SV -> báo sai
+    showWrongReturnMessage();
+    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
   }
 
   // Dọn dẹp node temp/book
   // Không xóa ngay; sẽ xóa sau khi người dùng nhấn Submit trả sách
   // await remove(ref(rtdb, "temp/book")).catch(() => {});
+});
+
+// Fallback: một số ESP đẩy trực tiếp root /book1
+onValue(ref(rtdb, "book1"), async (snapshot) => {
+  const v = snapshot.val();
+  if (!v) return;
+  const scannedBookId = extractBookId(v) || v.id || v.bookId || v.ID || null;
+  if (!scannedBookId) return;
+  console.log("📡 [Return] Quét RFID sách (root/book1):", scannedBookId);
+
+  const checkbox = findCheckboxByBookId(scannedBookId);
+  if (checkbox) {
+    const wasChecked = checkbox.checked;
+    checkbox.checked = true;
+    if (!wasChecked) window.toggleSelectedBook(checkbox);
+    hideWrongReturnMessage();
+    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
+  } else {
+    showWrongReturnMessage();
+    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
+  }
 });
 
 // Fallback legacy listener: nếu ESP32 vẫn đẩy vào temp gốc
@@ -103,12 +181,16 @@ onValue(ref(rtdb, "temp"), async (snapshot) => {
   // Nhận dạng sách nếu có t.bookId hoặc t.id
   const legacyBookId = t.bookId || t.id || null;
   if (legacyBookId) {
-    const checkbox = document.querySelector(
-      `.bookCheckbox[data-bookid='${legacyBookId}']`
-    );
+    const checkbox = findCheckboxByBookId(legacyBookId);
     if (checkbox) {
-      checkbox.checked = !checkbox.checked;
-      window.toggleSelectedBook(checkbox);
+      const wasChecked = checkbox.checked;
+      checkbox.checked = true;
+      if (!wasChecked) { window.toggleSelectedBook(checkbox); }
+      hideWrongReturnMessage();
+      updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: legacyBookId, type: 'success' });
+    } else {
+      showWrongReturnMessage();
+      updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: legacyBookId });
     }
   }
 });
@@ -180,6 +262,7 @@ function displayBorrowedBooks(books) {
   const table = document.getElementById("borrowedBooksTable");
   const empty = document.getElementById("noBooksMessage");
   const count = document.getElementById("returnBookCount");
+  const countBox = document.getElementById("bookCountReturn");
 
   tbody.innerHTML = "";
 
@@ -187,6 +270,7 @@ function displayBorrowedBooks(books) {
     empty.style.display = "flex";
     table.style.display = "none";
     count.textContent = 0;
+    if (countBox) countBox.style.display = "none";
     return;
   }
 
@@ -211,6 +295,7 @@ function displayBorrowedBooks(books) {
   });
 
   count.textContent = books.length;
+  if (countBox) countBox.style.display = "inline-flex";
 }
 
 // ======================================================
@@ -237,15 +322,19 @@ window.toggleSelectedBook = function(checkbox) {
   const name = checkbox.dataset.name;
 
   if (checkbox.checked) {
-    const div = document.createElement("div");
-    div.className = "selected-item";
-    div.dataset.id = id;
-    div.style = "padding:6px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;";
-    div.innerHTML = `
-      <span style="color:#333;">${name}</span>
-      <small style="color:#888;">ID: ${bookId}</small>
-    `;
-    selectedContainer.appendChild(div);
+    // tránh thêm trùng
+    let div = selectedContainer.querySelector(`[data-id='${id}']`);
+    if (!div) {
+      div = document.createElement("div");
+      div.className = "selected-item";
+      div.dataset.id = id;
+      div.style = "padding:6px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;";
+      div.innerHTML = `
+        <span style=\"color:#333;\">${name}</span>
+        <small style=\"color:#888;\">ID: ${bookId}</small>
+      `;
+      selectedContainer.appendChild(div);
+    }
   } else {
     const div = selectedContainer.querySelector(`[data-id='${id}']`);
     if (div) div.remove();
@@ -311,6 +400,56 @@ window.submitReturnBookForm = async function(e) {
   const studentId = document.getElementById("returnStudentId").value.trim();
   loadReturnBookList(studentId);
 };
+
+// Hiển thị/ẩn cảnh báo trả sai sách
+function showWrongReturnMessage() {
+  let el = document.getElementById("wrongReturnMsg");
+  if (!el) {
+    const container = document.getElementById("returnValidationMessage").parentElement;
+    el = document.createElement("div");
+    el.id = "wrongReturnMsg";
+    el.style = "margin-top:10px;padding:8px 12px;background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);border-radius:6px;font-size:0.85rem;color:#d32f2f;";
+    el.innerHTML = `<ion-icon name="close-circle-outline" style="margin-right:4px;"></ion-icon>Trả sai sách vui lòng chọn sách khác`;
+    container.appendChild(el);
+  }
+  el.style.display = "block";
+}
+
+function hideWrongReturnMessage() {
+  const el = document.getElementById("wrongReturnMsg");
+  if (el) el.style.display = "none";
+}
+
+// Cập nhật ô tóm tắt bên phải
+function updateSelectedSummary(payload) {
+  const box = document.getElementById('selectedSummary');
+  if (!box) return;
+  if (!payload) { box.style.display = 'none'; return; }
+  if (payload.type === 'success') {
+    box.style.display = 'block';
+    box.style.border = '1px solid rgba(76,175,80,0.3)';
+    box.style.background = 'rgba(76,175,80,0.06)';
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;color:#2e7d32;">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <strong>Đã chọn:</strong>
+      </div>
+      <div style="margin-top:6px;color:#2e7d32;">${payload.bookName || ''}</div>
+      <small style="color:#2e7d32;">ID: ${payload.bookId || ''}</small>
+    `;
+  } else if (payload.type === 'error') {
+    box.style.display = 'block';
+    box.style.border = '1px solid rgba(244,67,54,0.3)';
+    box.style.background = 'rgba(244,67,54,0.06)';
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;color:#d32f2f;">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <strong>${payload.message || 'Lỗi'}</strong>
+      </div>
+      <small style="display:block;margin-top:6px;color:#d32f2f;">ID quét: ${payload.bookId || ''}</small>
+    `;
+  }
+}
 
 // ======================================================
 // 🔹 Xử lý từng sách khi trả
