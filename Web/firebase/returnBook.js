@@ -298,6 +298,29 @@ function displayBorrowedBooks(books) {
   if (countBox) countBox.style.display = "inline-flex";
 }
 
+// Hàm tìm checkbox theo bookId (so sánh với data-bookid)
+function findCheckboxByBookId(bookId) {
+  return document.querySelector(`.bookCheckbox[data-bookid="${bookId}"]`);
+}
+
+// Hàm xử lý khi quét RFID sách
+function handleBookRFIDScan(scannedBookId) {
+  // Kiểm tra sách đang mượn
+  const checkbox = findCheckboxByBookId(scannedBookId);
+  if (checkbox) {
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change')); // Nếu có sự kiện change để cập nhật UI
+    showSelectedBookSummary(scannedBookId); // Hiển thị thông tin sách đã chọn nếu muốn
+  } else {
+    alert("⚠️ Sách này không nằm trong danh sách đang mượn của sinh viên!");
+  }
+}
+
+// Ví dụ: Khi nhận dữ liệu từ temp/books trên Firebase
+function onTempBookScanned(bookIdFromTemp) {
+  handleBookRFIDScan(bookIdFromTemp);
+}
+
 // ======================================================
 // 🔹 Chọn / bỏ chọn sách
 // ======================================================
@@ -401,7 +424,7 @@ window.submitReturnBookForm = async function(e) {
   loadReturnBookList(studentId);
 };
 
-// Hiển thị/ẩn cảnh báo trả sai sách
+// Sửa lại phần báo lỗi khi quét sai sách
 function showWrongReturnMessage() {
   let el = document.getElementById("wrongReturnMsg");
   if (!el) {
@@ -415,12 +438,7 @@ function showWrongReturnMessage() {
   el.style.display = "block";
 }
 
-function hideWrongReturnMessage() {
-  const el = document.getElementById("wrongReturnMsg");
-  if (el) el.style.display = "none";
-}
-
-// Cập nhật ô tóm tắt bên phải
+// Sửa lại phần cập nhật tóm tắt bên phải khi lỗi
 function updateSelectedSummary(payload) {
   const box = document.getElementById('selectedSummary');
   if (!box) return;
@@ -444,9 +462,8 @@ function updateSelectedSummary(payload) {
     box.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;color:#d32f2f;">
         <ion-icon name="close-circle-outline"></ion-icon>
-        <strong>${payload.message || 'Lỗi'}</strong>
+        <strong>Trả sai sách vui lòng chọn sách khác</strong>
       </div>
-      <small style="display:block;margin-top:6px;color:#d32f2f;">ID quét: ${payload.bookId || ''}</small>
     `;
   }
 }
