@@ -39,8 +39,9 @@ recognition.maxAlternatives = 1;
 
 let isListening = false;
 
-const API_KEY = "AIzaSyAJcZ4pQ4Oc9h96qii7YlJ1EXUVCW_fQnw";
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+const API_KEY = "AIzaSyCnXp6-L85_p36T-qcptBpzyV3P5VBL-Hs";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+`;
 
 const userData = { message: null, file: { data: null, mime_type: null } };
 const chatHistory = [];
