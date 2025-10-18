@@ -67,7 +67,6 @@
   </head>
 
   <body>
-
     <!-- Thanh điều hướng (Navigation Sidebar) -->
     <div class="navigation">
       <ul>
@@ -145,7 +144,7 @@
         >
           <div style="text-align: center">
             <h2 style="color: #1e293b; text-align: center; font-size: 3.5rem">
-              CHÀO MỪNG ĐẾN VỚI
+              Đề tài
             </h2>
             <h1
               style="
@@ -157,10 +156,10 @@
                 margin: 10px 0 0 0;
                 line-height: 1.1;
                 text-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-                font-family: 'Inter', sans-serif;
+                font-family: 'DFVN Aespira', sans-serif;
               "
             >
-              THƯ VIỆN CỦA CHÚNG TÔI
+              Mượn Trả Sách
             </h1>
             <p
               style="
@@ -236,7 +235,7 @@
                 <span style="color: white; font-size: 1.2rem">🔍</span>
               </div>
             </div>
-            
+
             <!-- Dropdown Suggestions -->
             <div
               id="searchSuggestions"
@@ -261,7 +260,6 @@
             </div>
           </div>
         </div>
-
       </div>
       <!-- Phần giao diện Profile: chỉ còn Sinh viên -->
       <div id="profileSection" style="display: none">
@@ -348,23 +346,122 @@
             margin: 40px auto;
           "
         >
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <h3 style="font-size:1.6rem;font-weight:700;color:#1a1a1a;margin:0;display:flex;align-items:center;">
-              <span style="font-size:1.8rem;margin-right:8px">📚</span>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            "
+          >
+            <h3
+              style="
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin: 0;
+                display: flex;
+                align-items: center;
+              "
+            >
+              <span style="font-size: 1.8rem; margin-right: 8px">📚</span>
               Sách đã mượn
             </h3>
-            <input oninput="filterStudentBorrowedBooks(this.value)" placeholder="Tìm sách đã mượn theo tên hoặc ID..." style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;min-width:280px;font-size:0.95rem;" />
+            <input
+              oninput="filterStudentBorrowedBooks(this.value)"
+              placeholder="Tìm sách đã mượn theo tên hoặc ID..."
+              style="
+                padding: 8px 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                min-width: 280px;
+                font-size: 0.95rem;
+              "
+            />
           </div>
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:separate;border-spacing:0;background:rgba(255,255,255,0.6);border-radius:14px;overflow:hidden;font-size:1rem;">
+          <div style="overflow-x: auto">
+            <table
+              style="
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 14px;
+                overflow: hidden;
+                font-size: 1rem;
+              "
+            >
               <thead>
-                <tr style="background:linear-gradient(135deg,#4d5bf9,#6a82fb)">
-                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem;width:80px">#</th>
-                  <th style="padding:18px 22px;text-align:left;color:white;font-weight:600;font-size:1rem">ID Sách</th>
-                  <th style="padding:18px 22px;text-align:left;color:white;font-weight:600;font-size:1rem">Tên sách</th>
-                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Ngày mượn</th>
-                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Hạn trả</th>
-                  <th style="padding:18px 22px;text-align:center;color:white;font-weight:600;font-size:1rem">Trạng thái</th>
+                <tr
+                  style="background: linear-gradient(135deg, #4d5bf9, #6a82fb)"
+                >
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: center;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                      width: 80px;
+                    "
+                  >
+                    #
+                  </th>
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: left;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                    "
+                  >
+                    ID Sách
+                  </th>
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: left;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                    "
+                  >
+                    Tên sách
+                  </th>
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: center;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                    "
+                  >
+                    Ngày mượn
+                  </th>
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: center;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                    "
+                  >
+                    Hạn trả
+                  </th>
+                  <th
+                    style="
+                      padding: 18px 22px;
+                      text-align: center;
+                      color: white;
+                      font-weight: 600;
+                      font-size: 1rem;
+                    "
+                  >
+                    Trạng thái
+                  </th>
                 </tr>
               </thead>
               <tbody id="borrowedBooksTableBody"></tbody>
@@ -823,7 +920,8 @@
                 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
                 border: 2px solid #f1f5f9;
                 cursor: pointer;
-                transition: all 0.3s ease;"
+                transition: all 0.3s ease;
+              "
               onclick="toggleFAQ(this)"
               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 15px 50px rgba(77,91,249,0.15)'"
               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 10px 40px rgba(0,0,0,0.08)'"
@@ -1150,7 +1248,7 @@
             >
               🔍
             </div>
-            
+
             <!-- Dropdown Suggestions for Favorite -->
             <div
               id="favoriteSearchSuggestions"
@@ -1979,6 +2077,7 @@
         }
       }
     </script>
+
     <!-- NÚT CHATBOT -->
     <button
       id="chatbot-toggler"
@@ -1990,20 +2089,9 @@
         background: transparent;
         border: none;
         cursor: pointer;
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #dc2626, #ef4444);
-        box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
-        transition: all 0.3s ease;
       "
-      onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 12px 32px rgba(220,38,38,0.4)'"
-      onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 8px 24px rgba(220,38,38,0.3)'"
     >
-      <div style="color: white; font-size: 2rem; font-weight: bold;">404</div>
+      <canvas id="chatbot-lottie-canvas" width="90" height="90"></canvas>
     </button>
 
     <!-- POPUP CHATBOT -->
@@ -2032,16 +2120,10 @@
         --chatbot-width: 380px;
         --chatbot-height: 600px;
       }
-      #chatbot-toggler {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #dc2626, #ef4444);
-        box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
-        transition: all 0.3s ease;
+      #chatbot-toggler canvas {
+        display: block;
+        width: 90px;
+        height: 90px;
       }
       #chatbotIframe {
         width: var(--chatbot-width);
@@ -2059,6 +2141,18 @@
       }
     </style>
 
+    <!-- SCRIPT Lottie (icon động) -->
+    <script type="module">
+      import { DotLottie } from "https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web/+esm";
+
+      const canvas = document.getElementById("chatbot-lottie-canvas");
+      const dotLottie = new DotLottie({
+        autoplay: true,
+        loop: true,
+        canvas,
+        src: "/chatbotAI/robot.json",
+      });
+    </script>
 
     <!-- SCRIPT toggle popup + căn theo icon -->
     <script>
