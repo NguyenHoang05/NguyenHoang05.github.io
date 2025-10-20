@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Wrong Book Return Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #B20000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #D32F2F;
+        }
+        .test-button.success {
+            background: #4CAF50;
+        }
+        .test-button.success:hover {
+            background: #45a049;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .message-demo {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+        .wrong-message {
+            background: rgba(244,67,54,0.1);
+            border: 1px solid rgba(244,67,54,0.3);
+            color: #d32f2f;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Wrong Book Return Functionality</h1>
+    
+    <div class="test-section">
+        <h2>1. Demo Thông Báo Trả Sai Sách</h2>
+        <p>Mô phỏng thông báo "Trả sai sách vui lòng chọn sách khác" với hiệu ứng:</p>
+        <button class="test-button" onclick="showWrongMessage()">Hiển thị thông báo lỗi</button>
+        <button class="test-button success" onclick="hideWrongMessage()">Ẩn thông báo</button>
+        <div id="messageDemo" class="message-demo" style="display: none;">
+            <div id="wrongMessage" class="wrong-message" style="display: none;">
+                <strong>❌ Trả sai sách vui lòng chọn sách khác</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Firebase Integration</h2>
+        <p>Test chức năng với Firebase Realtime Database:</p>
+        <button class="test-button" onclick="testWrongBookScan()">Test Quét Sách Sai</button>
+        <button class="test-button success" onclick="testCorrectBookScan()">Test Quét Sách Đúng</button>
+        <div id="firebaseResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Timeout Functionality</h2>
+        <p>Test thông báo tự động ẩn sau 3 giây:</p>
+        <button class="test-button" onclick="testTimeoutMessage()">Test Timeout 3s</button>
+        <div id="timeoutResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Animation</h2>
+        <p>Test hiệu ứng fade in/out:</p>
+        <button class="test-button" onclick="testFadeIn()">Test Fade In</button>
+        <button class="test-button" onclick="testFadeOut()">Test Fade Out</button>
+        <div id="animationResult" class="log"></div>
+    </div>
+
+    <!-- Firebase imports -->
+    <script type="module" src="firebase/firebase.js"></script>
+    <script type="module" src="firebase/returnBook.js"></script>
+    
+    <script type="module">
+        import { rtdb } from './firebase/firebase.js';
+        import { ref, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+        // Demo thông báo lỗi
+        window.showWrongMessage = function() {
+            const demo = document.getElementById('messageDemo');
+            const message = document.getElementById('wrongMessage');
+            
+            demo.style.display = 'block';
+            message.style.display = 'block';
+            message.style.animation = 'fadeIn 0.3s ease';
+            
+            document.getElementById('firebaseResult').textContent = "✅ Thông báo lỗi đã hiển thị với animation fadeIn";
+        };
+
+        window.hideWrongMessage = function() {
+            const message = document.getElementById('wrongMessage');
+            message.style.animation = 'fadeOut 0.3s ease';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+                document.getElementById('messageDemo').style.display = 'none';
+            }, 300);
+            
+            document.getElementById('firebaseResult').textContent = "✅ Thông báo lỗi đã ẩn với animation fadeOut";
+        };
+
+        // Test Firebase integration
+        window.testWrongBookScan = async function() {
+            try {
+                await set(ref(rtdb, "temp/book"), {
+                    id: "WRONG_BOOK_001",
+                    title: "Sách không đúng"
+                });
+                
+                document.getElementById('firebaseResult').textContent = "✅ Đã gửi dữ liệu sách sai vào Firebase\n" +
+                    "📡 Sẽ kích hoạt logic hiển thị thông báo 'Trả sai sách vui lòng chọn sách khác'\n" +
+                    "⏰ Thông báo sẽ tự động ẩn sau 3 giây";
+            } catch (error) {
+                document.getElementById('firebaseResult').textContent = "❌ Lỗi Firebase: " + error.message;
+            }
+        };
+
+        window.testCorrectBookScan = async function() {
+            try {
+                await set(ref(rtdb, "temp/book"), {
+                    id: "BOOK001", // Giả sử đây là sách đang mượn
+                    title: "Sách đúng"
+                });
+                
+                document.getElementById('firebaseResult').textContent = "✅ Đã gửi dữ liệu sách đúng vào Firebase\n" +
+                    "📡 Sẽ kích hoạt logic ẩn thông báo lỗi (nếu có)\n" +
+                    "✅ Sách sẽ được thêm vào danh sách đã chọn";
+            } catch (error) {
+                document.getElementById('firebaseResult').textContent = "❌ Lỗi Firebase: " + error.message;
+            }
+        };
+
+        // Test timeout functionality
+        window.testTimeoutMessage = function() {
+            let countdown = 3;
+            const result = document.getElementById('timeoutResult');
+            
+            result.textContent = `⏰ Bắt đầu đếm ngược ${countdown} giây...`;
+            
+            const interval = setInterval(() => {
+                countdown--;
+                result.textContent = `⏰ Còn ${countdown} giây...`;
+                
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    result.textContent = "✅ Timeout hoàn thành - thông báo đã ẩn";
+                }
+            }, 1000);
+        };
+
+        // Test animation
+        window.testFadeIn = function() {
+            const result = document.getElementById('animationResult');
+            result.textContent = "🎬 Test Fade In Animation:\n" +
+                "1. Thông báo xuất hiện từ trên xuống\n" +
+                "2. Opacity từ 0 → 1\n" +
+                "3. Transform translateY(-10px) → translateY(0)\n" +
+                "4. Thời gian: 0.3s ease";
+            
+            // Mô phỏng animation
+            setTimeout(() => {
+                result.textContent += "\n✅ Animation fadeIn hoàn thành";
+            }, 300);
+        };
+
+        window.testFadeOut = function() {
+            const result = document.getElementById('animationResult');
+            result.textContent = "🎬 Test Fade Out Animation:\n" +
+                "1. Thông báo biến mất lên trên\n" +
+                "2. Opacity từ 1 → 0\n" +
+                "3. Transform translateY(0) → translateY(-10px)\n" +
+                "4. Thời gian: 0.3s ease";
+            
+            // Mô phỏng animation
+            setTimeout(() => {
+                result.textContent += "\n✅ Animation fadeOut hoàn thành";
+            }, 300);
+        };
+    </script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import {
   collection, getDocs, query, where, doc, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import {
-  ref, onValue, update, remove
+  ref, onValue, update, remove, set
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // Cờ điều khiển mở modal Trả sách để tránh xung đột với phần Mượn
@@ -200,10 +200,37 @@ onValue(ref(rtdb, "temp"), async (snapshot) => {
 // ======================================================
 window.openReturnBookForm = function() {
   document.getElementById("returnBookModal").style.display = "flex";
+  
+  // Ẩn thông báo trả sai sách khi mở modal
+  hideWrongReturnMessage();
+  
+  // Reset các trường form
+  document.getElementById("returnStudentName").value = "";
+  document.getElementById("returnMssv").value = "";
+  document.getElementById("returnStudentId").value = "";
+  
+  // Xóa hoàn toàn thông báo lỗi nếu có
+  const wrongMsg = document.getElementById("wrongReturnMsg");
+  if (wrongMsg) {
+    wrongMsg.remove();
+  }
+  
+  console.log("📖 Đã mở form trả sách - xóa thông báo lỗi");
 };
 
 window.closeReturnBookForm = function() {
   document.getElementById("returnBookModal").style.display = "none";
+  
+  // Ẩn thông báo trả sai sách khi đóng modal
+  hideWrongReturnMessage();
+  
+  // Xóa hoàn toàn thông báo lỗi nếu có
+  const wrongMsg = document.getElementById("wrongReturnMsg");
+  if (wrongMsg) {
+    wrongMsg.remove();
+  }
+  
+  console.log("❌ Đã đóng form trả sách - xóa thông báo lỗi");
 };
 
 // ======================================================
@@ -235,6 +262,15 @@ async function loadStudentInfo(studentId) {
 async function loadReturnBookList(studentId = null) {
   try {
     console.log("📚 Đang tải danh sách sách đang mượn...");
+
+    // Ẩn thông báo lỗi khi load danh sách mới
+    hideWrongReturnMessage();
+    
+    // Xóa hoàn toàn thông báo lỗi nếu có
+    const wrongMsg = document.getElementById("wrongReturnMsg");
+    if (wrongMsg) {
+      wrongMsg.remove();
+    }
 
     let q;
     if (studentId)
@@ -392,6 +428,17 @@ window.clearAllSelected = function() {
   document.getElementById("selectedCountBtn").textContent = "0";
   document.getElementById("returnSelectedBtn").disabled = true;
   document.getElementById("returnSelectedBtn").style.opacity = "0.5";
+  
+  // Ẩn thông báo lỗi khi xóa tất cả chọn
+  hideWrongReturnMessage();
+  
+  // Xóa hoàn toàn thông báo lỗi nếu có
+  const wrongMsg = document.getElementById("wrongReturnMsg");
+  if (wrongMsg) {
+    wrongMsg.remove();
+  }
+  
+  console.log("🧹 Đã xóa tất cả chọn - xóa thông báo lỗi");
 };
 
 // ======================================================
@@ -424,26 +471,77 @@ window.submitReturnBookForm = async function(e) {
   loadReturnBookList(studentId);
 };
 
-// Sửa lại phần báo lỗi khi quét sai sách
+// Biến để lưu timeout của thông báo
+let wrongReturnMessageTimeout = null;
+
+// Hiển thị thông báo trả sai sách (chỉ khi quét sai)
 function showWrongReturnMessage() {
+  // Xóa timeout cũ nếu có
+  if (wrongReturnMessageTimeout) {
+    clearTimeout(wrongReturnMessageTimeout);
+  }
+
   let el = document.getElementById("wrongReturnMsg");
   if (!el) {
     const container = document.getElementById("returnValidationMessage").parentElement;
     el = document.createElement("div");
     el.id = "wrongReturnMsg";
-    el.style = "margin-top:10px;padding:8px 12px;background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);border-radius:6px;font-size:0.85rem;color:#d32f2f;";
+    el.style = "margin-top:10px;padding:8px 12px;background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);border-radius:6px;font-size:0.85rem;color:#d32f2f;animation:fadeIn 0.3s ease;display:none;";
     el.innerHTML = `<ion-icon name="close-circle-outline" style="margin-right:4px;"></ion-icon>Trả sai sách vui lòng chọn sách khác`;
     container.appendChild(el);
   }
+  
+  // Hiển thị với animation
   el.style.display = "block";
+  el.style.animation = "fadeIn 0.3s ease";
+  
+  console.log("⚠️ Hiển thị thông báo: Trả sai sách vui lòng chọn sách khác");
+  
+  // Tự động ẩn sau 3 giây
+  wrongReturnMessageTimeout = setTimeout(() => {
+    console.log("⏰ Tự động ẩn thông báo sau 3 giây");
+    hideWrongReturnMessage();
+  }, 3000);
+}
+
+// Hàm ẩn thông báo trả sai sách
+function hideWrongReturnMessage() {
+  // Xóa timeout nếu có
+  if (wrongReturnMessageTimeout) {
+    clearTimeout(wrongReturnMessageTimeout);
+    wrongReturnMessageTimeout = null;
+  }
+
+  const el = document.getElementById("wrongReturnMsg");
+  if (el) {
+    console.log("🔄 Đang ẩn thông báo trả sai sách...");
+    el.style.animation = "fadeOut 0.3s ease";
+    setTimeout(() => {
+      el.style.display = "none";
+      console.log("✅ Đã ẩn thông báo trả sai sách");
+    }, 300);
+  }
 }
 
 // Sửa lại phần cập nhật tóm tắt bên phải khi lỗi
 function updateSelectedSummary(payload) {
   const box = document.getElementById('selectedSummary');
   if (!box) return;
-  if (!payload) { box.style.display = 'none'; return; }
+  if (!payload) { 
+    box.style.display = 'none'; 
+    return; 
+  }
+  
   if (payload.type === 'success') {
+    // Ẩn thông báo lỗi khi quét đúng sách
+    hideWrongReturnMessage();
+    
+    // Xóa hoàn toàn thông báo lỗi nếu có
+    const wrongMsg = document.getElementById("wrongReturnMsg");
+    if (wrongMsg) {
+      wrongMsg.remove();
+    }
+    
     box.style.display = 'block';
     box.style.border = '1px solid rgba(76,175,80,0.3)';
     box.style.background = 'rgba(76,175,80,0.06)';
@@ -455,16 +553,12 @@ function updateSelectedSummary(payload) {
       <div style="margin-top:6px;color:#2e7d32;">${payload.bookName || ''}</div>
       <small style="color:#2e7d32;">ID: ${payload.bookId || ''}</small>
     `;
+    console.log("✅ Hiển thị thông báo thành công cho sách:", payload.bookName);
   } else if (payload.type === 'error') {
-    box.style.display = 'block';
-    box.style.border = '1px solid rgba(244,67,54,0.3)';
-    box.style.background = 'rgba(244,67,54,0.06)';
-    box.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;color:#d32f2f;">
-        <ion-icon name="close-circle-outline"></ion-icon>
-        <strong>Trả sai sách vui lòng chọn sách khác</strong>
-      </div>
-    `;
+    // KHÔNG hiển thị bất kỳ banner lỗi nào trong panel "Sách đã chọn trả"
+    box.style.display = 'none';
+    box.innerHTML = '';
+    console.log("❌ Ẩn banner lỗi trong selectedSummary (chỉ dùng banner ngoài)");
   }
 }
 
@@ -506,3 +600,23 @@ async function processReturnBook(historyId) {
 }
 
 window.loadReturnBookList = loadReturnBookList;
+
+// 🔹 Test RFID cho sách (trả sách)
+window.testBookRFIDScan = function() {
+  const tempRef = ref(rtdb, "temp/book");
+  set(tempRef, {
+    id: "WRONG_BOOK_001",
+    title: "Sách không đúng"
+  });
+  console.log("✅ Test RFID sách sai đã được đặt - sẽ hiển thị thông báo lỗi");
+};
+
+// 🔹 Test RFID cho sách đúng (trả sách)
+window.testCorrectBookRFIDScan = function() {
+  const tempRef = ref(rtdb, "temp/book");
+  set(tempRef, {
+    id: "BOOK001", // Giả sử đây là sách đang mượn
+    title: "Sách đúng"
+  });
+  console.log("✅ Test RFID sách đúng đã được đặt - sẽ ẩn thông báo lỗi");
+};

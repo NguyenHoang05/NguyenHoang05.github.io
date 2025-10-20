@@ -51,7 +51,7 @@ window.openBorrowForm = function () {
   const today = new Date();
   const borrowDateStr = today.toISOString().split("T")[0];
   const returnDate = new Date(today);
-  returnDate.setDate(today.getDate() + 14);
+  returnDate.setDate(today.getDate() + 90);
   const returnDateStr = returnDate.toISOString().split("T")[0];
 
   document.getElementById("borrowDate").value = borrowDateStr;
@@ -69,6 +69,13 @@ window.openBorrowForm = function () {
         document.getElementById("studentId").value = s.iduser || s.id || "";
         document.getElementById("mssv").value = s.mssv || "";
         document.getElementById("studentClass").value = s.class || "";
+        // Lấy email từ temp (các key thường gặp: email, gmail, emailAddress)
+        const email = s.email || s.gmail || s.emailAddress || "";
+        const emailEl = document.getElementById("studentEmail");
+        if (emailEl) {
+          emailEl.value = email;
+          console.log("📧 Email từ temp:", email);
+        }
 
         const studentId = s.iduser || s.id || "";
         if (studentId) window.loadStudentBorrowedBooks(studentId);
@@ -163,6 +170,24 @@ window.submitBorrowForm = async function (event) {
   const borrowDate = getEl("borrowDate")?.value.trim();
   const returnDate = getEl("returnDate")?.value.trim();
 
+  // Lấy email từ form, nếu không có thì lấy từ temp
+  let studentEmail = getEl("studentEmail")?.value?.trim() || "";
+  
+  // Nếu email trống, thử lấy từ temp
+  if (!studentEmail) {
+    try {
+      const tempRef = ref(rtdb, "temp/student");
+      const tempSnapshot = await get(tempRef);
+      if (tempSnapshot.exists()) {
+        const tempStudent = tempSnapshot.val();
+        studentEmail = tempStudent.email || tempStudent.gmail || tempStudent.emailAddress || "";
+        console.log("📧 Lấy email từ temp:", studentEmail);
+      }
+    } catch (error) {
+      console.warn("⚠️ Không thể lấy email từ temp:", error);
+    }
+  }
+
   const bookRows = document.querySelectorAll(".book-row");
   const books = Array.from(bookRows).map(row => {
     const bookId = row.querySelector('input[name="bookId"]')?.value.trim();
@@ -191,6 +216,7 @@ window.submitBorrowForm = async function (event) {
         studentId,
         studentCode,
         studentClass,
+        studentEmail,
         bookId: b.bookId,
         bookName: b.bookName,
         borrowDate,
@@ -198,6 +224,14 @@ window.submitBorrowForm = async function (event) {
         status: "Đang mượn",
         createdAt: new Date().toISOString(),
       };
+
+      console.log("📚 Lưu dữ liệu mượn sách:", {
+        studentName,
+        studentId,
+        studentEmail,
+        bookName: b.bookName,
+        bookId: b.bookId
+      });
 
             // Firestore
       await setDoc(doc(db, "history", historyId), data);
@@ -236,7 +270,7 @@ window.submitBorrowForm = async function (event) {
 const today = new Date();
 const borrowDateStr = today.toISOString().split("T")[0];
 const returnDateObj = new Date(today);
-returnDateObj.setDate(today.getDate() + 14);
+returnDateObj.setDate(today.getDate() + 90);
 const returnDateStr = returnDateObj.toISOString().split("T")[0];
 
 document.getElementById("borrowDate").value = borrowDateStr;
@@ -252,4 +286,34 @@ document.getElementById("returnDate").value = returnDateStr;
     console.error("❌ Lỗi khi mượn sách:", error);
     alert("Không thể mượn sách: " + (error?.message || error));
   }
+};
+
+// 🔹 Test RFID cho sinh viên với email
+window.testBorrowRFIDScan = function () {
+  const tempRef = ref(rtdb, "temp/student");
+  set(tempRef, {
+    iduser: "4299DF00",
+    username: "Nguyễn Văn A",
+    mssv: "N22DCVT001",
+    class: "D22CQVT01-N",
+    email: "nguyenvana@student.ptithcm.edu.vn",
+    role: "student"
+  });
+  console.log("✅ Test RFID sinh viên đã được đặt với email:", "nguyenvana@student.ptithcm.edu.vn");
+};
+
+// 🔹 Test RFID cho sách
+window.testBookBorrowRFIDScan = function () {
+  const tempRef = ref(rtdb, "temp/books");
+  set(tempRef, {
+    "book1": {
+      id: "BOOK001",
+      title: "Lập trình JavaScript"
+    },
+    "book2": {
+      id: "BOOK002", 
+      title: "Cơ sở dữ liệu"
+    }
+  });
+  console.log("✅ Test RFID sách đã được đặt");
 };

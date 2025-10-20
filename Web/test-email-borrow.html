@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Borrow Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #B20000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #D32F2F;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Email Borrow Functionality</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Setup Data</h2>
+        <p>Thiết lập dữ liệu test trong Firebase Realtime Database:</p>
+        <button class="test-button" onclick="setupTestData()">Setup Test Data</button>
+        <button class="test-button" onclick="checkTempData()">Check Temp Data</button>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Email Retrieval</h2>
+        <p>Kiểm tra việc lấy email từ temp:</p>
+        <button class="test-button" onclick="testEmailRetrieval()">Test Email Retrieval</button>
+        <div id="emailResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Borrow Process</h2>
+        <p>Test quá trình mượn sách với email:</p>
+        <button class="test-button" onclick="testBorrowProcess()">Test Borrow Process</button>
+        <div id="borrowResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Check History</h2>
+        <p>Kiểm tra dữ liệu trong history:</p>
+        <button class="test-button" onclick="checkHistory()">Check History</button>
+        <div id="historyResult" class="log"></div>
+    </div>
+
+    <!-- Firebase imports -->
+    <script type="module" src="firebase/firebase.js"></script>
+    <script type="module" src="firebase/borrow.js"></script>
+    
+    <script type="module">
+        import { rtdb } from './firebase/firebase.js';
+        import { ref, set, get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+        // Setup test data
+        window.setupTestData = async function() {
+            try {
+                // Setup student data with email
+                await set(ref(rtdb, "temp/student"), {
+                    iduser: "TEST001",
+                    username: "Nguyễn Văn Test",
+                    mssv: "N22DCVT999",
+                    class: "D22CQVT01-N",
+                    email: "nguyenvantest@student.ptithcm.edu.vn",
+                    role: "student"
+                });
+
+                // Setup books data
+                await set(ref(rtdb, "temp/books"), {
+                    "book1": {
+                        id: "BOOK001",
+                        title: "Lập trình JavaScript"
+                    },
+                    "book2": {
+                        id: "BOOK002", 
+                        title: "Cơ sở dữ liệu"
+                    }
+                });
+
+                document.getElementById('emailResult').textContent = "✅ Test data đã được setup thành công!";
+            } catch (error) {
+                document.getElementById('emailResult').textContent = "❌ Lỗi setup: " + error.message;
+            }
+        };
+
+        // Check temp data
+        window.checkTempData = async function() {
+            try {
+                const studentRef = ref(rtdb, "temp/student");
+                const studentSnapshot = await get(studentRef);
+                
+                const booksRef = ref(rtdb, "temp/books");
+                const booksSnapshot = await get(booksRef);
+
+                let result = "📊 Temp Data:\n\n";
+                
+                if (studentSnapshot.exists()) {
+                    result += "👤 Student:\n" + JSON.stringify(studentSnapshot.val(), null, 2) + "\n\n";
+                } else {
+                    result += "❌ Không có dữ liệu student\n\n";
+                }
+
+                if (booksSnapshot.exists()) {
+                    result += "📚 Books:\n" + JSON.stringify(booksSnapshot.val(), null, 2);
+                } else {
+                    result += "❌ Không có dữ liệu books";
+                }
+
+                document.getElementById('emailResult').textContent = result;
+            } catch (error) {
+                document.getElementById('emailResult').textContent = "❌ Lỗi check: " + error.message;
+            }
+        };
+
+        // Test email retrieval
+        window.testEmailRetrieval = async function() {
+            try {
+                const tempRef = ref(rtdb, "temp/student");
+                const tempSnapshot = await get(tempRef);
+                
+                if (tempSnapshot.exists()) {
+                    const tempStudent = tempSnapshot.val();
+                    const email = tempStudent.email || tempStudent.gmail || tempStudent.emailAddress || "";
+                    
+                    let result = "📧 Email Retrieval Test:\n\n";
+                    result += "Raw data: " + JSON.stringify(tempStudent, null, 2) + "\n\n";
+                    result += "Extracted email: " + email + "\n";
+                    result += "Email valid: " + (email ? "✅" : "❌");
+                    
+                    document.getElementById('emailResult').textContent = result;
+                } else {
+                    document.getElementById('emailResult').textContent = "❌ Không có dữ liệu student trong temp";
+                }
+            } catch (error) {
+                document.getElementById('emailResult').textContent = "❌ Lỗi retrieval: " + error.message;
+            }
+        };
+
+        // Test borrow process
+        window.testBorrowProcess = async function() {
+            try {
+                // Simulate form data
+                const formData = {
+                    studentName: "Nguyễn Văn Test",
+                    studentId: "TEST001",
+                    studentCode: "N22DCVT999",
+                    studentClass: "D22CQVT01-N",
+                    studentEmail: "nguyenvantest@student.ptithcm.edu.vn",
+                    bookId: "BOOK001",
+                    bookName: "Lập trình JavaScript",
+                    borrowDate: "2024-12-15",
+                    returnDate: "2025-03-15"
+                };
+
+                let result = "📚 Borrow Process Test:\n\n";
+                result += "Form data: " + JSON.stringify(formData, null, 2) + "\n\n";
+                result += "Email trong form: " + formData.studentEmail + "\n";
+                result += "Email valid: " + (formData.studentEmail ? "✅" : "❌");
+                
+                document.getElementById('borrowResult').textContent = result;
+            } catch (error) {
+                document.getElementById('borrowResult').textContent = "❌ Lỗi borrow: " + error.message;
+            }
+        };
+
+        // Check history
+        window.checkHistory = async function() {
+            try {
+                const historyRef = ref(rtdb, "history");
+                const historySnapshot = await get(historyRef);
+                
+                let result = "📋 History Data:\n\n";
+                
+                if (historySnapshot.exists()) {
+                    const historyData = historySnapshot.val();
+                    result += "Total records: " + Object.keys(historyData).length + "\n\n";
+                    
+                    // Show first few records
+                    const records = Object.entries(historyData).slice(0, 3);
+                    records.forEach(([key, value]) => {
+                        result += `Record ${key}:\n`;
+                        result += `  - Student: ${value.studentName}\n`;
+                        result += `  - Email: ${value.studentEmail || 'N/A'}\n`;
+                        result += `  - Book: ${value.bookName}\n`;
+                        result += `  - Status: ${value.status}\n\n`;
+                    });
+                } else {
+                    result += "❌ Không có dữ liệu history";
+                }
+                
+                document.getElementById('historyResult').textContent = result;
+            } catch (error) {
+                document.getElementById('historyResult').textContent = "❌ Lỗi history: " + error.message;
+            }
+        };
+    </script>
+</body>
+</html>

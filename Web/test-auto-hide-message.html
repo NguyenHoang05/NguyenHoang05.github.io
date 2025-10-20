@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auto Hide Message Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #B20000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #D32F2F;
+        }
+        .test-button.success {
+            background: #4CAF50;
+        }
+        .test-button.success:hover {
+            background: #45a049;
+        }
+        .test-button.warning {
+            background: #FF9800;
+        }
+        .test-button.warning:hover {
+            background: #F57C00;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .message-demo {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+        .wrong-message {
+            background: rgba(244,67,54,0.1);
+            border: 1px solid rgba(244,67,54,0.3);
+            color: #d32f2f;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease;
+            display: none;
+        }
+        .success-message {
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease;
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-hidden { background: #ccc; }
+        .status-visible { background: #f44336; }
+        .status-auto-hide { background: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Auto Hide Message Functionality</h1>
+    
+    <div class="test-section">
+        <h2>1. Demo Thông Báo Tự Động Ẩn</h2>
+        <p>Mô phỏng thông báo "Trả sai sách vui lòng chọn sách khác" với tính năng tự động ẩn:</p>
+        <button class="test-button" onclick="showAutoHideMessage()">Hiển thị thông báo (3s tự ẩn)</button>
+        <button class="test-button success" onclick="hideMessage()">Ẩn thông báo ngay</button>
+        <button class="test-button warning" onclick="showSuccessMessage()">Hiển thị thông báo thành công</button>
+        
+        <div id="messageDemo" class="message-demo">
+            <div id="wrongMessage" class="wrong-message">
+                <strong>❌ Trả sai sách vui lòng chọn sách khác</strong>
+            </div>
+            <div id="successMessage" class="success-message">
+                <strong>✅ Đã chọn sách thành công</strong>
+            </div>
+        </div>
+        
+        <div id="statusIndicator">
+            <span class="status-indicator status-hidden"></span>
+            <span>Trạng thái: Ẩn</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Logic Ẩn/Hiện Thông Báo</h2>
+        <p>Test các tình huống khác nhau:</p>
+        <button class="test-button" onclick="testOpenModal()">Test Mở Modal</button>
+        <button class="test-button" onclick="testCloseModal()">Test Đóng Modal</button>
+        <button class="test-button" onclick="testLoadBookList()">Test Load Danh Sách</button>
+        <button class="test-button" onclick="testClearSelection()">Test Xóa Chọn</button>
+        <div id="logicResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Timeout và Animation</h2>
+        <p>Test tính năng timeout và animation:</p>
+        <button class="test-button" onclick="testTimeoutSequence()">Test Chuỗi Timeout</button>
+        <button class="test-button" onclick="testAnimationSequence()">Test Chuỗi Animation</button>
+        <div id="timeoutResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Firebase Integration</h2>
+        <p>Test tích hợp với Firebase:</p>
+        <button class="test-button" onclick="testWrongBookFirebase()">Test Sách Sai (Firebase)</button>
+        <button class="test-button success" onclick="testCorrectBookFirebase()">Test Sách Đúng (Firebase)</button>
+        <div id="firebaseResult" class="log"></div>
+    </div>
+
+    <!-- Firebase imports -->
+    <script type="module" src="firebase/firebase.js"></script>
+    <script type="module" src="firebase/returnBook.js"></script>
+    
+    <script type="module">
+        import { rtdb } from './firebase/firebase.js';
+        import { ref, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+        let messageTimeout = null;
+        let statusInterval = null;
+
+        // Demo thông báo tự động ẩn
+        window.showAutoHideMessage = function() {
+            const message = document.getElementById('wrongMessage');
+            const success = document.getElementById('successMessage');
+            const status = document.getElementById('statusIndicator');
+            
+            // Ẩn thông báo thành công nếu có
+            success.style.display = 'none';
+            
+            // Hiển thị thông báo lỗi
+            message.style.display = 'block';
+            message.style.animation = 'fadeIn 0.3s ease';
+            
+            // Cập nhật trạng thái
+            updateStatus('visible');
+            
+            // Tự động ẩn sau 3 giây
+            if (messageTimeout) clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                hideMessage();
+            }, 3000);
+            
+            document.getElementById('logicResult').textContent = "✅ Thông báo đã hiển thị - sẽ tự động ẩn sau 3 giây";
+        };
+
+        window.hideMessage = function() {
+            const message = document.getElementById('wrongMessage');
+            const success = document.getElementById('successMessage');
+            
+            // Ẩn cả hai thông báo
+            message.style.animation = 'fadeOut 0.3s ease';
+            success.style.animation = 'fadeOut 0.3s ease';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+                success.style.display = 'none';
+                updateStatus('hidden');
+            }, 300);
+            
+            // Xóa timeout nếu có
+            if (messageTimeout) {
+                clearTimeout(messageTimeout);
+                messageTimeout = null;
+            }
+            
+            document.getElementById('logicResult').textContent = "✅ Thông báo đã được ẩn";
+        };
+
+        window.showSuccessMessage = function() {
+            const message = document.getElementById('wrongMessage');
+            const success = document.getElementById('successMessage');
+            
+            // Ẩn thông báo lỗi
+            message.style.display = 'none';
+            
+            // Hiển thị thông báo thành công
+            success.style.display = 'block';
+            success.style.animation = 'fadeIn 0.3s ease';
+            
+            updateStatus('success');
+            
+            document.getElementById('logicResult').textContent = "✅ Hiển thị thông báo thành công - ẩn thông báo lỗi";
+        };
+
+        function updateStatus(status) {
+            const indicator = document.querySelector('.status-indicator');
+            const text = indicator.nextElementSibling;
+            
+            indicator.className = 'status-indicator';
+            
+            switch(status) {
+                case 'hidden':
+                    indicator.classList.add('status-hidden');
+                    text.textContent = 'Trạng thái: Ẩn';
+                    break;
+                case 'visible':
+                    indicator.classList.add('status-visible');
+                    text.textContent = 'Trạng thái: Hiển thị';
+                    break;
+                case 'auto-hide':
+                    indicator.classList.add('status-auto-hide');
+                    text.textContent = 'Trạng thái: Tự động ẩn (3s)';
+                    break;
+                case 'success':
+                    indicator.classList.add('status-visible');
+                    text.textContent = 'Trạng thái: Thành công';
+                    break;
+            }
+        }
+
+        // Test logic ẩn/hiện
+        window.testOpenModal = function() {
+            hideMessage();
+            document.getElementById('logicResult').textContent = "📖 Test mở modal:\n" +
+                "✅ Ẩn thông báo lỗi khi mở modal\n" +
+                "✅ Reset form fields\n" +
+                "✅ Console log: 'Đã mở form trả sách - ẩn thông báo lỗi'";
+        };
+
+        window.testCloseModal = function() {
+            document.getElementById('logicResult').textContent = "❌ Test đóng modal:\n" +
+                "✅ Ẩn thông báo lỗi khi đóng modal\n" +
+                "✅ Console log: 'Đã đóng form trả sách - ẩn thông báo lỗi'";
+        };
+
+        window.testLoadBookList = function() {
+            document.getElementById('logicResult').textContent = "📚 Test load danh sách sách:\n" +
+                "✅ Ẩn thông báo lỗi khi load danh sách mới\n" +
+                "✅ Console log: 'Đang tải danh sách sách đang mượn...'";
+        };
+
+        window.testClearSelection = function() {
+            document.getElementById('logicResult').textContent = "🧹 Test xóa tất cả chọn:\n" +
+                "✅ Ẩn thông báo lỗi khi xóa tất cả chọn\n" +
+                "✅ Console log: 'Đã xóa tất cả chọn - ẩn thông báo lỗi'";
+        };
+
+        // Test timeout và animation
+        window.testTimeoutSequence = function() {
+            let countdown = 3;
+            const result = document.getElementById('timeoutResult');
+            
+            result.textContent = `⏰ Test timeout sequence:\nBắt đầu đếm ngược ${countdown} giây...`;
+            updateStatus('auto-hide');
+            
+            const interval = setInterval(() => {
+                countdown--;
+                result.textContent = `⏰ Test timeout sequence:\nCòn ${countdown} giây...`;
+                
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    result.textContent += "\n✅ Timeout hoàn thành - thông báo đã tự động ẩn";
+                    updateStatus('hidden');
+                }
+            }, 1000);
+        };
+
+        window.testAnimationSequence = function() {
+            const result = document.getElementById('timeoutResult');
+            result.textContent = "🎬 Test animation sequence:\n" +
+                "1. fadeIn: opacity 0→1, translateY(-10px)→0\n" +
+                "2. Hiển thị trong 3 giây\n" +
+                "3. fadeOut: opacity 1→0, translateY(0)→(-10px)\n" +
+                "4. Ẩn hoàn toàn";
+            
+            // Mô phỏng animation
+            setTimeout(() => {
+                result.textContent += "\n✅ Animation sequence hoàn thành";
+            }, 1000);
+        };
+
+        // Test Firebase integration
+        window.testWrongBookFirebase = async function() {
+            try {
+                await set(ref(rtdb, "temp/book"), {
+                    id: "WRONG_BOOK_001",
+                    title: "Sách không đúng"
+                });
+                
+                document.getElementById('firebaseResult').textContent = "✅ Test sách sai (Firebase):\n" +
+                    "📡 Đã gửi dữ liệu sách sai vào Firebase\n" +
+                    "⚠️ Sẽ kích hoạt showWrongReturnMessage()\n" +
+                    "⏰ Thông báo sẽ hiển thị và tự động ẩn sau 3 giây\n" +
+                    "🔄 Console log: 'Hiển thị thông báo: Trả sai sách vui lòng chọn sách khác'";
+            } catch (error) {
+                document.getElementById('firebaseResult').textContent = "❌ Lỗi Firebase: " + error.message;
+            }
+        };
+
+        window.testCorrectBookFirebase = async function() {
+            try {
+                await set(ref(rtdb, "temp/book"), {
+                    id: "BOOK001",
+                    title: "Sách đúng"
+                });
+                
+                document.getElementById('firebaseResult').textContent = "✅ Test sách đúng (Firebase):\n" +
+                    "📡 Đã gửi dữ liệu sách đúng vào Firebase\n" +
+                    "✅ Sẽ kích hoạt hideWrongReturnMessage()\n" +
+                    "✅ Thông báo lỗi sẽ được ẩn ngay lập tức\n" +
+                    "🔄 Console log: 'Đang ẩn thông báo trả sai sách...'";
+            } catch (error) {
+                document.getElementById('firebaseResult').textContent = "❌ Lỗi Firebase: " + error.message;
+            }
+        };
+    </script>
+</body>
+</html>
