@@ -84,17 +84,9 @@ onValue(ref(rtdb, "temp/books"), async (snapshot) => {
   }
   if (!scannedBookId) return;
   console.log('📡 [Return] Quét RFID sách (temp/books):', scannedBookId);
-  const checkbox = findCheckboxByBookId(scannedBookId);
-  if (checkbox) {
-    const wasChecked = checkbox.checked;
-    checkbox.checked = true;
-    if (!wasChecked) window.toggleSelectedBook(checkbox);
-    hideWrongReturnMessage();
-    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
-  } else {
-    showWrongReturnMessage();
-    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
-  }
+  
+  // Xử lý quét sách với logic cải tiến
+  handleBookScan(scannedBookId);
 });
 
 onValue(ref(rtdb, "temp/book"), async (snapshot) => {
@@ -106,26 +98,8 @@ onValue(ref(rtdb, "temp/book"), async (snapshot) => {
   if (!scannedBookId) return;
   console.log("📡 [Return] Quét RFID sách:", scannedBookId);
 
-  const checkbox = findCheckboxByBookId(scannedBookId);
-
-  if (checkbox) {
-    // Đúng sách đang mượn -> auto chọn (không toggle)
-    const wasChecked = checkbox.checked;
-    checkbox.checked = true;
-    if (!wasChecked) {
-      window.toggleSelectedBook(checkbox);
-    }
-    hideWrongReturnMessage();
-    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
-  } else {
-    // Không khớp với danh sách đang mượn của SV -> báo sai
-    showWrongReturnMessage();
-    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
-  }
-
-  // Dọn dẹp node temp/book
-  // Không xóa ngay; sẽ xóa sau khi người dùng nhấn Submit trả sách
-  // await remove(ref(rtdb, "temp/book")).catch(() => {});
+  // Xử lý quét sách với logic cải tiến
+  handleBookScan(scannedBookId);
 });
 
 // Fallback: một số ESP đẩy trực tiếp root /book1
@@ -136,17 +110,8 @@ onValue(ref(rtdb, "book1"), async (snapshot) => {
   if (!scannedBookId) return;
   console.log("📡 [Return] Quét RFID sách (root/book1):", scannedBookId);
 
-  const checkbox = findCheckboxByBookId(scannedBookId);
-  if (checkbox) {
-    const wasChecked = checkbox.checked;
-    checkbox.checked = true;
-    if (!wasChecked) window.toggleSelectedBook(checkbox);
-    hideWrongReturnMessage();
-    updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: scannedBookId, type: 'success' });
-  } else {
-    showWrongReturnMessage();
-    updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: scannedBookId });
-  }
+  // Xử lý quét sách với logic cải tiến
+  handleBookScan(scannedBookId);
 });
 
 // Fallback legacy listener: nếu ESP32 vẫn đẩy vào temp gốc
@@ -181,17 +146,8 @@ onValue(ref(rtdb, "temp"), async (snapshot) => {
   // Nhận dạng sách nếu có t.bookId hoặc t.id
   const legacyBookId = t.bookId || t.id || null;
   if (legacyBookId) {
-    const checkbox = findCheckboxByBookId(legacyBookId);
-    if (checkbox) {
-      const wasChecked = checkbox.checked;
-      checkbox.checked = true;
-      if (!wasChecked) { window.toggleSelectedBook(checkbox); }
-      hideWrongReturnMessage();
-      updateSelectedSummary({ bookName: checkbox.dataset.name, bookId: legacyBookId, type: 'success' });
-    } else {
-      showWrongReturnMessage();
-      updateSelectedSummary({ type: 'error', message: 'Trả sai sách vui lòng chọn sách khác', bookId: legacyBookId });
-    }
+    // Xử lý quét sách với logic cải tiến
+    handleBookScan(legacyBookId);
   }
 });
 
@@ -200,6 +156,13 @@ onValue(ref(rtdb, "temp"), async (snapshot) => {
 // ======================================================
 window.openReturnBookForm = function() {
   document.getElementById("returnBookModal").style.display = "flex";
+  
+  // Reset trạng thái thông báo
+  isShowingWrongMessage = false;
+  if (wrongReturnMessageTimeout) {
+    clearTimeout(wrongReturnMessageTimeout);
+    wrongReturnMessageTimeout = null;
+  }
   
   // Ẩn thông báo trả sai sách khi mở modal
   hideWrongReturnMessage();
@@ -215,11 +178,25 @@ window.openReturnBookForm = function() {
     wrongMsg.remove();
   }
   
-  console.log("📖 Đã mở form trả sách - xóa thông báo lỗi");
+  // Reset tóm tắt
+  const summaryBox = document.getElementById('selectedSummary');
+  if (summaryBox) {
+    summaryBox.style.display = 'none';
+    summaryBox.innerHTML = '';
+  }
+  
+  console.log("📖 Đã mở form trả sách - reset trạng thái");
 };
 
 window.closeReturnBookForm = function() {
   document.getElementById("returnBookModal").style.display = "none";
+  
+  // Reset trạng thái thông báo
+  isShowingWrongMessage = false;
+  if (wrongReturnMessageTimeout) {
+    clearTimeout(wrongReturnMessageTimeout);
+    wrongReturnMessageTimeout = null;
+  }
   
   // Ẩn thông báo trả sai sách khi đóng modal
   hideWrongReturnMessage();
@@ -230,7 +207,14 @@ window.closeReturnBookForm = function() {
     wrongMsg.remove();
   }
   
-  console.log("❌ Đã đóng form trả sách - xóa thông báo lỗi");
+  // Reset tóm tắt
+  const summaryBox = document.getElementById('selectedSummary');
+  if (summaryBox) {
+    summaryBox.style.display = 'none';
+    summaryBox.innerHTML = '';
+  }
+  
+  console.log("❌ Đã đóng form trả sách - reset trạng thái");
 };
 
 // ======================================================
@@ -263,6 +247,13 @@ async function loadReturnBookList(studentId = null) {
   try {
     console.log("📚 Đang tải danh sách sách đang mượn...");
 
+    // Reset trạng thái thông báo khi load danh sách mới
+    isShowingWrongMessage = false;
+    if (wrongReturnMessageTimeout) {
+      clearTimeout(wrongReturnMessageTimeout);
+      wrongReturnMessageTimeout = null;
+    }
+
     // Ẩn thông báo lỗi khi load danh sách mới
     hideWrongReturnMessage();
     
@@ -270,6 +261,13 @@ async function loadReturnBookList(studentId = null) {
     const wrongMsg = document.getElementById("wrongReturnMsg");
     if (wrongMsg) {
       wrongMsg.remove();
+    }
+
+    // Reset tóm tắt
+    const summaryBox = document.getElementById('selectedSummary');
+    if (summaryBox) {
+      summaryBox.style.display = 'none';
+      summaryBox.innerHTML = '';
     }
 
     let q;
@@ -285,6 +283,7 @@ async function loadReturnBookList(studentId = null) {
     snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
 
     displayBorrowedBooks(list);
+    console.log("📚 Đã load danh sách sách - reset trạng thái");
   } catch (error) {
     console.error("❌ Firestore lỗi khi load danh sách:", error);
   }
@@ -337,6 +336,54 @@ function displayBorrowedBooks(books) {
 // Hàm tìm checkbox theo bookId (so sánh với data-bookid)
 function findCheckboxByBookId(bookId) {
   return document.querySelector(`.bookCheckbox[data-bookid="${bookId}"]`);
+}
+
+// Hàm xử lý quét sách với logic cải tiến - tránh xung đột khi quét xen kẽ
+function handleBookScan(scannedBookId) {
+  console.log(`🔍 [Return] Xử lý quét sách: ${scannedBookId}`);
+  
+  const checkbox = findCheckboxByBookId(scannedBookId);
+  
+  if (checkbox) {
+    // Sách đúng - trong danh sách đang mượn
+    console.log(`✅ [Return] Sách đúng: ${checkbox.dataset.name}`);
+    
+    // Ẩn thông báo lỗi ngay lập tức nếu đang hiển thị
+    if (isShowingWrongMessage) {
+      hideWrongReturnMessage();
+    }
+    
+    // Chọn sách nếu chưa được chọn
+    const wasChecked = checkbox.checked;
+    checkbox.checked = true;
+    if (!wasChecked) {
+      window.toggleSelectedBook(checkbox);
+    }
+    
+    // Cập nhật tóm tắt thành công
+    updateSelectedSummary({ 
+      bookName: checkbox.dataset.name, 
+      bookId: scannedBookId, 
+      type: 'success' 
+    });
+    
+    console.log(`✅ [Return] Đã chọn sách: ${checkbox.dataset.name}`);
+  } else {
+    // Sách sai - không trong danh sách đang mượn
+    console.log(`❌ [Return] Sách sai: ${scannedBookId}`);
+    
+    // Hiển thị thông báo lỗi
+    showWrongReturnMessage();
+    
+    // Ẩn tóm tắt thành công nếu có
+    updateSelectedSummary({ 
+      type: 'error', 
+      message: 'Trả sai sách vui lòng chọn sách khác', 
+      bookId: scannedBookId 
+    });
+    
+    console.log(`❌ [Return] Hiển thị thông báo lỗi cho sách: ${scannedBookId}`);
+  }
 }
 
 // Hàm xử lý khi quét RFID sách
@@ -429,6 +476,13 @@ window.clearAllSelected = function() {
   document.getElementById("returnSelectedBtn").disabled = true;
   document.getElementById("returnSelectedBtn").style.opacity = "0.5";
   
+  // Reset trạng thái thông báo
+  isShowingWrongMessage = false;
+  if (wrongReturnMessageTimeout) {
+    clearTimeout(wrongReturnMessageTimeout);
+    wrongReturnMessageTimeout = null;
+  }
+  
   // Ẩn thông báo lỗi khi xóa tất cả chọn
   hideWrongReturnMessage();
   
@@ -438,7 +492,14 @@ window.clearAllSelected = function() {
     wrongMsg.remove();
   }
   
-  console.log("🧹 Đã xóa tất cả chọn - xóa thông báo lỗi");
+  // Reset tóm tắt
+  const summaryBox = document.getElementById('selectedSummary');
+  if (summaryBox) {
+    summaryBox.style.display = 'none';
+    summaryBox.innerHTML = '';
+  }
+  
+  console.log("🧹 Đã xóa tất cả chọn - reset trạng thái");
 };
 
 // ======================================================
@@ -473,13 +534,18 @@ window.submitReturnBookForm = async function(e) {
 
 // Biến để lưu timeout của thông báo
 let wrongReturnMessageTimeout = null;
+let isShowingWrongMessage = false;
 
 // Hiển thị thông báo trả sai sách (chỉ khi quét sai)
 function showWrongReturnMessage() {
   // Xóa timeout cũ nếu có
   if (wrongReturnMessageTimeout) {
     clearTimeout(wrongReturnMessageTimeout);
+    wrongReturnMessageTimeout = null;
   }
+
+  // Đánh dấu đang hiển thị thông báo lỗi
+  isShowingWrongMessage = true;
 
   let el = document.getElementById("wrongReturnMsg");
   if (!el) {
@@ -497,11 +563,11 @@ function showWrongReturnMessage() {
   
   console.log("⚠️ Hiển thị thông báo: Trả sai sách vui lòng chọn sách khác");
   
-  // Tự động ẩn sau 3 giây
+  // Tự động ẩn sau 4 giây (tăng thời gian để người dùng đọc được)
   wrongReturnMessageTimeout = setTimeout(() => {
-    console.log("⏰ Tự động ẩn thông báo sau 3 giây");
+    console.log("⏰ Tự động ẩn thông báo sau 4 giây");
     hideWrongReturnMessage();
-  }, 3000);
+  }, 4000);
 }
 
 // Hàm ẩn thông báo trả sai sách
@@ -511,6 +577,9 @@ function hideWrongReturnMessage() {
     clearTimeout(wrongReturnMessageTimeout);
     wrongReturnMessageTimeout = null;
   }
+
+  // Đánh dấu không còn hiển thị thông báo lỗi
+  isShowingWrongMessage = false;
 
   const el = document.getElementById("wrongReturnMsg");
   if (el) {
@@ -534,12 +603,8 @@ function updateSelectedSummary(payload) {
   
   if (payload.type === 'success') {
     // Ẩn thông báo lỗi khi quét đúng sách
-    hideWrongReturnMessage();
-    
-    // Xóa hoàn toàn thông báo lỗi nếu có
-    const wrongMsg = document.getElementById("wrongReturnMsg");
-    if (wrongMsg) {
-      wrongMsg.remove();
+    if (isShowingWrongMessage) {
+      hideWrongReturnMessage();
     }
     
     box.style.display = 'block';
@@ -555,10 +620,10 @@ function updateSelectedSummary(payload) {
     `;
     console.log("✅ Hiển thị thông báo thành công cho sách:", payload.bookName);
   } else if (payload.type === 'error') {
-    // KHÔNG hiển thị bất kỳ banner lỗi nào trong panel "Sách đã chọn trả"
+    // Ẩn tóm tắt thành công khi có lỗi
     box.style.display = 'none';
     box.innerHTML = '';
-    console.log("❌ Ẩn banner lỗi trong selectedSummary (chỉ dùng banner ngoài)");
+    console.log("❌ Ẩn banner thành công khi có lỗi");
   }
 }
 
@@ -611,12 +676,22 @@ window.testBookRFIDScan = function() {
   console.log("✅ Test RFID sách sai đã được đặt - sẽ hiển thị thông báo lỗi");
 };
 
-// 🔹 Test RFID cho sách đúng (trả sách)
+// 🔹 Test RFID cho sách đúng (trả sách) - sử dụng ID từ danh sách thực tế
 window.testCorrectBookRFIDScan = function() {
-  const tempRef = ref(rtdb, "temp/book");
-  set(tempRef, {
-    id: "BOOK001", // Giả sử đây là sách đang mượn
-    title: "Sách đúng"
-  });
-  console.log("✅ Test RFID sách đúng đã được đặt - sẽ ẩn thông báo lỗi");
+  // Tìm sách đầu tiên trong danh sách đang mượn
+  const firstCheckbox = document.querySelector(".bookCheckbox");
+  if (firstCheckbox) {
+    const bookId = firstCheckbox.dataset.bookid;
+    const bookName = firstCheckbox.dataset.name;
+    
+    const tempRef = ref(rtdb, "temp/book");
+    set(tempRef, {
+      id: bookId,
+      title: bookName
+    });
+    console.log(`✅ Test RFID sách đúng: ${bookName} (${bookId}) - sẽ chọn sách này`);
+  } else {
+    console.log("❌ Không có sách nào trong danh sách để test");
+    alert("Không có sách nào trong danh sách để test. Vui lòng quét thẻ sinh viên trước.");
+  }
 };
