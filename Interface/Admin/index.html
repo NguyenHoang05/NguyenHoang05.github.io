@@ -93,13 +93,13 @@
             <li class="list">
                 <a href="#">
                     <span class="icon"><ion-icon name="information-circle-outline"></ion-icon></span>
-                    <span class="title">Thông tin</span>
+                    <span class="title">Information</span>
                 </a>
             </li>
             <li class="list">
                 <a href="#" onclick="showSection('historySection')">
                     <span class="icon"><ion-icon name="stats-chart-outline"></ion-icon></span>
-                    <span class="title">Thống kê</span>
+                    <span class="title">Book statistics</span>
                 </a>
             </li>
             <li class="list">
@@ -330,51 +330,6 @@
                     </div>
                     <div id="analysisBorrowingBooks" style="font-size:2.5rem;font-weight:700;color:#FF9800;margin-bottom:8px;position:relative;z-index:1;">0</div>
                     <div style="color:#666;font-size:1rem;font-weight:500;position:relative;z-index:1;">Sách đang mượn</div>
-                </div>
-            </div>
-            
-            <!-- Biểu đồ và thống kê chi tiết -->
-            <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;">
-                <!-- Biểu đồ cột hiện đại -->
-                <div style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.8));backdrop-filter:blur(15px);border-radius:20px;padding:30px;min-width:400px;box-shadow:0 15px 45px rgba(0,0,0,0.1);border:2px solid rgba(255,255,255,0.3);transition:all 0.4s cubic-bezier(0.4,0,0.2,1);" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 20px 60px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 15px 45px rgba(0,0,0,0.1)'">
-                    <h3 style="color:#1a1a1a;font-size:1.3rem;font-weight:600;margin-bottom:20px;text-align:center;">Biểu đồ trạng thái sách</h3>
-                    <div style="display:flex;align-items:flex-end;gap:40px;height:200px;justify-content:center;">
-                        <div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="height:160px;width:50px;background:linear-gradient(180deg,#4CAF50,#66BB6A);border-radius:10px 10px 0 0;box-shadow:0 4px 15px rgba(76,175,80,0.3);position:relative;">
-                                <div style="position:absolute;top:-25px;left:50%;transform:translateX(-50%);background:white;padding:4px 8px;border-radius:6px;font-size:0.8rem;font-weight:600;color:#4CAF50;box-shadow:0 2px 8px rgba(0,0,0,0.1);">1,161</div>
-                            </div>
-                            <span style="margin-top:12px;font-size:1rem;font-weight:500;color:#666;">Sách còn</span>
-                        </div>
-                        <div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="height:80px;width:50px;background:linear-gradient(180deg,#FF9800,#FFB74D);border-radius:10px 10px 0 0;box-shadow:0 4px 15px rgba(255,152,0,0.3);position:relative;">
-                                <div style="position:absolute;top:-25px;left:50%;transform:translateX(-50%);background:white;padding:4px 8px;border-radius:6px;font-size:0.8rem;font-weight:600;color:#FF9800;box-shadow:0 2px 8px rgba(0,0,0,0.1);">89</div>
-                            </div>
-                            <span style="margin-top:12px;font-size:1rem;font-weight:500;color:#666;">Đang mượn</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Thống kê chi tiết -->
-                <div style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.8));backdrop-filter:blur(15px);border-radius:20px;padding:30px;min-width:300px;box-shadow:0 15px 45px rgba(0,0,0,0.1);border:2px solid rgba(255,255,255,0.3);transition:all 0.4s cubic-bezier(0.4,0,0.2,1);" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 20px 60px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 15px 45px rgba(0,0,0,0.1)'">
-                    <h3 style="color:#1a1a1a;font-size:1.3rem;font-weight:600;margin-bottom:20px;text-align:center;">Thống kê chi tiết</h3>
-                    <div style="display:flex;flex-direction:column;gap:15px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(76,175,80,0.1);border-radius:10px;border-left:4px solid #4CAF50;">
-                            <span style="font-weight:500;color:#333;">Tỷ lệ sách còn</span>
-                            <span style="font-weight:700;color:#4CAF50;font-size:1.1rem;">92.9%</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,152,0,0.1);border-radius:10px;border-left:4px solid #FF9800;">
-                            <span style="font-weight:500;color:#333;">Tỷ lệ sách mượn</span>
-                            <span style="font-weight:700;color:#FF9800;font-size:1.1rem;">7.1%</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(178,0,0,0.1);border-radius:10px;border-left:4px solid #B20000;">
-                            <span style="font-weight:500;color:#333;">Sinh viên đăng ký</span>
-                            <span style="font-weight:700;color:#B20000;font-size:1.1rem;">156</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(33,150,243,0.1);border-radius:10px;border-left:4px solid #2196F3;">
-                            <span style="font-weight:500;color:#333;">Lượt mượn tháng này</span>
-                            <span style="font-weight:700;color:#2196F3;font-size:1.1rem;">234</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
