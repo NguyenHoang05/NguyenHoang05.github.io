@@ -119,17 +119,18 @@
   <div class="toggle-panel toggle-left">
     <h1>Trang quản lý thư viện</h1>
     <p>Bạn chưa có tài khoản?</p>
-    <button class="btn register-btn">Đăng ký</button>
+    <!-- thêm type="button" để tránh submit -->
+    <button type="button" class="btn register-btn">Đăng ký</button>
   </div>
   <div class="toggle-panel toggle-right">
     <h1>Chào mừng bạn trở lại</h1>
     <p>Bạn đã có tài khoản?</p>
-    <button class="btn login-btn">Đăng nhập</button>
+    <button type="button" class="btn login-btn">Đăng nhập</button>
   </div>
 </div>
 
 <!-- Link đến JS -->
-<script src="main.js"></script>
+<script type="module" src="main.js"></script>
 <!-- Chú ý: Đặt đúng đường dẫn register.js trong thư mục firebase -->
 <script type="module" src="./firebase/register.js"></script>
 <script type="module" src="./firebase/login.js"></script>
