@@ -234,7 +234,9 @@ window.openReturnBookForm = function() {
     summaryBox.innerHTML = '';
   }
 
-  
+  // 💡 LOGIC CẬP NHẬT: DỌN DẸP NODE SÁCH VÀ CỜ TRẢ SÁCH KHI MỞ FORM
+  // Chỉ xóa các node sách và cờ mở form để chuẩn bị cho lần quét mới.
+  // GIỮ LẠI temp/student để bên Mượn sách có thể sử dụng (nếu có).
   try {
     remove(ref(rtdb, "temp/openReturn")).catch(() => {});
     remove(ref(rtdb, "temp/book")).catch(() => {});
@@ -514,7 +516,6 @@ window.submitReturnBookForm = async function(e) {
   try {
     await remove(ref(rtdb, "temp/student"));
     await remove(ref(rtdb, "temp/book"));
-    await remove(ref(rtdb, "temp/bookBorrow"));
     await remove(ref(rtdb, "temp/books"));
     await remove(ref(rtdb, "book1")); // Xóa node legacy
     

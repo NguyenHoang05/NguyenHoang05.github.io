@@ -84,13 +84,13 @@ window.openBorrowForm = function () {
       const booksContainer = document.getElementById("booksContainer");
       booksContainer.innerHTML = "";
 
-      if (temp.bookBorrow) {
-        Object.keys(temp.bookBorrow).forEach((key) => {
-          const book = temp.bookBorrow[key];
-          addBookRow(book.book_id || "", book.title || "");
+      if (temp.books) {
+        Object.keys(temp.books).forEach((key) => {
+          const book = temp.books[key];
+          addBookRow(book.id || "", book.title || "");
         });
 
-        document.getElementById("bookCount").textContent = Object.keys(temp.bookBorrow).length;
+        document.getElementById("bookCount").textContent = Object.keys(temp.books).length;
       }
     });
   });
@@ -254,7 +254,6 @@ window.submitBorrowForm = async function (event) {
     // Chỉ xóa dữ liệu tạm SAU khi mượn thành công
     await remove(ref(rtdb, "temp/student")).catch(() => {});
     await remove(ref(rtdb, "temp/books")).catch(() => {});
-    await remove(ref(rtdb, "temp/bookBorrow")).catch(() => {});
     await remove(ref(rtdb, "temp/openBorrow")).catch(() => {});
 
     alert(`📚 Đã mượn thành công ${results.length} cuốn:\n${results.join("\n")}`);
@@ -289,3 +288,32 @@ document.getElementById("returnDate").value = returnDateStr;
   }
 };
 
+// 🔹 Test RFID cho sinh viên với email
+window.testBorrowRFIDScan = function () {
+  const tempRef = ref(rtdb, "temp/student");
+  set(tempRef, {
+    iduser: "4299DF00",
+    username: "Nguyễn Văn A",
+    mssv: "N22DCVT001",
+    class: "D22CQVT01-N",
+    email: "nguyenvana@student.ptithcm.edu.vn",
+    role: "student"
+  });
+  console.log("✅ Test RFID sinh viên đã được đặt với email:", "nguyenvana@student.ptithcm.edu.vn");
+};
+
+// 🔹 Test RFID cho sách
+window.testBookBorrowRFIDScan = function () {
+  const tempRef = ref(rtdb, "temp/books");
+  set(tempRef, {
+    "book1": {
+      id: "BOOK001",
+      title: "Lập trình JavaScript"
+    },
+    "book2": {
+      id: "BOOK002", 
+      title: "Cơ sở dữ liệu"
+    }
+  });
+  console.log("✅ Test RFID sách đã được đặt");
+};
