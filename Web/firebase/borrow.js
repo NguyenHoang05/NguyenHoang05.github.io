@@ -84,10 +84,10 @@ window.openBorrowForm = function () {
       const booksContainer = document.getElementById("booksContainer");
       booksContainer.innerHTML = "";
 
-      if (temp.books) {
-        Object.keys(temp.books).forEach((key) => {
-          const book = temp.books[key];
-          addBookRow(book.id || "", book.title || "");
+      if (temp.bookBorrow) {
+        Object.keys(temp.bookBorrow).forEach((key) => {
+          const book = temp.bookBorrow[key];
+          addBookRow(book.book_id || "", book.title || "");
         });
 
         document.getElementById("bookCount").textContent = Object.keys(temp.books).length;
@@ -254,6 +254,7 @@ window.submitBorrowForm = async function (event) {
     // Chỉ xóa dữ liệu tạm SAU khi mượn thành công
     await remove(ref(rtdb, "temp/student")).catch(() => {});
     await remove(ref(rtdb, "temp/books")).catch(() => {});
+    await remove(ref(rtdb, "temp/bookBorrow")).catch(() => {});
     await remove(ref(rtdb, "temp/openBorrow")).catch(() => {});
 
     alert(`📚 Đã mượn thành công ${results.length} cuốn:\n${results.join("\n")}`);

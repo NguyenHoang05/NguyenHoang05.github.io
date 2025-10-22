@@ -240,6 +240,7 @@ window.openReturnBookForm = function() {
   try {
     remove(ref(rtdb, "temp/openReturn")).catch(() => {});
     remove(ref(rtdb, "temp/book")).catch(() => {});
+     remove(ref(rtdb, "temp/bookBorrow")).catch(() => {});
     remove(ref(rtdb, "temp/books")).catch(() => {});
     remove(ref(rtdb, "book1")).catch(() => {});
     console.log("🧹 Dọn dẹp cờ và các node sách (temp/book, temp/books, book1) khi mở form Trả sách.");
