@@ -16,7 +16,6 @@ const firebaseConfig = {
 // Khởi tạo Firebase App
 const app = initializeApp(firebaseConfig);
 // Xuất đối tượng Firestore ra ngoài để file khác dùng
-const db = getFirestore(app);
 
 import {
   collection,
@@ -25,6 +24,14 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
+import {
+  getDatabase,
+  ref,
+  get,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+const db = getFirestore(app);
+const rtdb = getDatabase(app);
 const chatBody = document.querySelector(".chat-body");
 const messageInput = document.querySelector(".message-input");
 const sendMessageButton = document.querySelector("#send-message");
@@ -45,6 +52,12 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-
 const userData = { message: null, file: { data: null, mime_type: null } };
 const chatHistory = [];
 const initialInputHeight = messageInput.scrollHeight;
+
+const sessionState = {
+  mssv: null,
+  awaitingMSSV: false,
+};
+let lastIntent = null;
 
 const speak = (text) => {
   if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
@@ -109,7 +122,6 @@ async function getAllCategoriesAndAuthors() {
 
 // --- KẾT THÚC ĐOẠN CODE CẦN THÊM ---
 function getDefaultBotReply(message) {
-  // Chuẩn hóa input: đưa về chữ thường + bỏ khoảng trắng
   const lower = message.toLowerCase().trim();
 
   // 1. Chào hỏi
@@ -134,16 +146,16 @@ function getDefaultBotReply(message) {
   }
 
   if (lower.includes("quy định mượn sách") || lower.includes("mượn sách")) {
-    return "📖 Bạn có thể mượn tối đa 3 cuốn/lần, thời hạn 14 ngày. Vui lòng trả đúng hạn để không bị phạt.";
+    return "📖 Bạn có thể mượn tối đa 5 cuốn/lần, thời hạn 90 ngày. Vui lòng trả đúng hạn để không bị phạt.";
   }
 
-  // 5. Hỏi về thể loại (genre)
+  // 5. Hỏi về thể loại
   if (
     lower.includes("thể loại") ||
     lower.includes("loại sách") ||
     lower.includes("sách gì")
   ) {
-    return "show_categories"; // sẽ được generateBotResponse() xử lý và trả danh sách genre
+    return "show_categories";
   }
 
   // 6. Hỏi về tác giả
@@ -156,7 +168,17 @@ function getDefaultBotReply(message) {
     return "show_authors";
   }
 
-  return null; // Không khớp gì cả -> sẽ cho Gemini trả lời tự do
+  // ✅ 7. Check nâng cao qua matchIntent() – BỔ SUNG NÀY LÀM SAU CÙNG
+  const detectedIntent = matchIntent(message);
+  if (
+    ["get_user_info", "count_books_borrowed", "get_unreturned_books"].includes(
+      detectedIntent
+    )
+  ) {
+    return detectedIntent;
+  }
+
+  return null; // Không khớp gì cả → để Gemini xử lý
 }
 
 async function extractKeywordsFromUserMessage(message) {
@@ -310,10 +332,11 @@ async function getGeminiResponseCached(message) {
   return response;
 }
 
-// Sửa lại generateBotResponse
+// --- HÀM generateBotResponse ---
 const generateBotResponse = async (incomingMessageDiv) => {
   const messageElement = incomingMessageDiv.querySelector(".message-text");
   let apiResponseText = "";
+
   try {
     let userMsg = userData.message.trim();
 
@@ -321,54 +344,122 @@ const generateBotResponse = async (incomingMessageDiv) => {
     const { corrected, keywords } = await correctAndExtractKeywords(userMsg);
     chatHistory.push({ role: "user", parts: [{ text: corrected }] });
 
-    // Ưu tiên trả lời theo mẫu
+    // Ưu tiên trả lời theo mẫu hoặc intent
     const defaultReply = getDefaultBotReply(corrected);
 
-    if (defaultReply === "show_categories") {
-      // Đọc field genre từ Firestore
-      const { categories: genres } = await getAllCategoriesAndAuthors();
-      if (genres.length > 0) {
-        apiResponseText = `📚 Thư viện hiện có các thể loại (genre):\n\n• ${genres.join(
-          "\n• "
-        )}`;
+    // 👉 Nếu đang chờ người dùng nhập MSSV
+    if (sessionState.awaitingMSSV) {
+      if (/^[A-Z0-9]{10}$/i.test(corrected)) {
+        sessionState.mssv = corrected;
+        sessionState.awaitingMSSV = false;
+
+        if (lastIntent === "get_user_info") {
+          apiResponseText = await getStudentInfoByMSSV(sessionState.mssv);
+        } else if (lastIntent === "count_books_borrowed") {
+          apiResponseText = await countBooksBorrowed(sessionState.mssv);
+        } else if (lastIntent === "get_unreturned_books") {
+          apiResponseText = await getUnreturnedBooks(sessionState.mssv);
+        }
       } else {
         apiResponseText =
-          "😅 Xin lỗi, chưa có dữ liệu về thể loại trong hệ thống.";
+          "⚠️ MSSV không hợp lệ. Vui lòng kiểm tra lại và nhập đúng MSSV (gồm 10 ký tự).";
+        messageElement.innerText = apiResponseText;
+        speak(apiResponseText);
+        incomingMessageDiv.classList.remove("thinking");
+        chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+        return;
       }
+
+      chatHistory.push({ role: "model", parts: [{ text: apiResponseText }] });
+      messageElement.innerText = apiResponseText;
+      speak(apiResponseText);
+      incomingMessageDiv.classList.remove("thinking");
+      chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+      return;
+    }
+
+    // 👉 Nếu là yêu cầu liên quan đến thông tin đọc giả
+    if (
+      [
+        "get_user_info",
+        "count_books_borrowed",
+        "get_unreturned_books",
+      ].includes(defaultReply)
+    ) {
+      if (!sessionState.mssv) {
+        apiResponseText =
+          "🎓 Bạn vui lòng nhập mã số sinh viên (MSSV) để mình tra cứu thông tin nhé!";
+        sessionState.awaitingMSSV = true;
+        lastIntent = defaultReply;
+      } else {
+        if (defaultReply === "get_user_info") {
+          apiResponseText = await getStudentInfoByMSSV(sessionState.mssv);
+        } else if (defaultReply === "count_books_borrowed") {
+          apiResponseText = await countBooksBorrowed(sessionState.mssv);
+        } else if (defaultReply === "get_unreturned_books") {
+          apiResponseText = await getUnreturnedBooks(sessionState.mssv);
+        }
+      }
+
+      // ✅ Nếu MSSV cũ không hợp lệ → reset để tránh lặp lỗi
+      if (
+        apiResponseText.includes("Không tìm thấy") ||
+        apiResponseText.includes("Không có lịch sử") ||
+        apiResponseText.includes("lỗi khi truy xuất")
+      ) {
+        sessionState.mssv = null;
+        lastIntent = null;
+      }
+
+      chatHistory.push({ role: "model", parts: [{ text: apiResponseText }] });
+      messageElement.innerText = apiResponseText;
+      speak(apiResponseText);
+      incomingMessageDiv.classList.remove("thinking");
+      chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+      return;
+    }
+
+    // 👉 Quick replies: show categories / authors
+    if (defaultReply === "show_categories") {
+      const { categories: genres } = await getAllCategoriesAndAuthors();
+      apiResponseText =
+        genres.length > 0
+          ? `📚 Thư viện hiện có các thể loại (genre):\n\n• ${genres.join(
+              "\n• "
+            )}`
+          : "😅 Xin lỗi, chưa có dữ liệu về thể loại trong hệ thống.";
     } else if (defaultReply === "show_authors") {
       const { authors } = await getAllCategoriesAndAuthors();
-      if (authors.length > 0) {
-        apiResponseText = `✍️ Các tác giả tiêu biểu:\n\n• ${authors.join(
-          "\n• "
-        )}`;
-      } else {
-        apiResponseText =
-          "😅 Xin lỗi, chưa có dữ liệu về tác giả trong hệ thống.";
-      }
+      apiResponseText =
+        authors.length > 0
+          ? `✍️ Các tác giả tiêu biểu:\n\n• ${authors.join("\n• ")}`
+          : "😅 Xin lỗi, chưa có dữ liệu về tác giả trong hệ thống.";
     } else if (defaultReply) {
-      // Trả về câu trả lời cố định (chào hỏi, cảm ơn, quy định mượn sách...)
+      // Các câu trả lời tĩnh: cảm ơn, chào hỏi...
       apiResponseText = defaultReply;
     } else if (isBookQuery(corrected) && keywords.length > 0) {
+      // Tìm sách theo từ khóa
       const reply = await searchBooksInFirebase(keywords);
       apiResponseText = reply || "😔 Không tìm thấy sách nào phù hợp.";
     } else {
-      // Nếu không khớp gì cả, hỏi Gemini để trả lời tự do
+      // Fallback: nhờ Gemini trả lời tự do
       apiResponseText = await getGeminiResponseCached(corrected);
     }
 
     chatHistory.push({ role: "model", parts: [{ text: apiResponseText }] });
   } catch (err) {
-    console.error(err);
+    console.error("⚠️ Lỗi xử lý generateBotResponse:", err);
     apiResponseText = "⚠️ Đã xảy ra lỗi khi xử lý yêu cầu.";
     messageElement.style.color = "#ff0000";
   }
 
-  // Hiển thị câu trả lời
+  // 🖥️ Hiển thị kết quả cuối cùng
   messageElement.innerText = apiResponseText;
   speak(apiResponseText);
   incomingMessageDiv.classList.remove("thinking");
   chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
 };
+// --- KẾT THÚC SỬA ĐỔI HÀM generateBotResponse ---
 
 const handleOutgoingMessage = (e) => {
   e.preventDefault();
@@ -515,3 +606,186 @@ document.querySelectorAll(".quick-prompt").forEach((button) => {
     generateBotResponse(inDiv);
   });
 });
+// ===== NHẬN DIỆN Ý ĐỊNH NGƯỜI DÙNG =====
+function matchIntent(message) {
+  const lower = message.toLowerCase();
+
+  const intents = {
+    get_user_info: [
+      "tôi là ai",
+      "tài khoản của tôi",
+      "thông tin cá nhân",
+      "tôi thuộc lớp",
+      "email của tôi",
+      "xem thông tin",
+      "tra cứu thông tin",
+      "biết thông tin của tôi",
+      "tôi cần tra cứu",
+      "tôi cần xem thông tin",
+      "thông tin của mình",
+      "xem lại thông tin cá nhân",
+    ],
+    count_books_borrowed: [
+      "mượn mấy",
+      "đọc bao nhiêu",
+      "lịch sử mượn",
+      "mượn bao nhiêu",
+      "đã đọc mấy cuốn",
+      "từng mượn",
+      "tôi đã mượn sách chưa",
+      "đã mượn bao nhiêu sách",
+      "sách tôi đã đọc",
+      "bao nhiêu cuốn tôi từng mượn",
+      "tôi có đọc sách nào không",
+      "tôi đã mượn bao nhiêu cuốn",
+      "tôi có từng mượn sách không",
+      "tôi đã mượn mấy cuốn",
+      "cho biết số sách đã mượn",
+      "tôi đã mượn những gì",
+    ],
+    get_unreturned_books: [
+      "chưa trả",
+      "nợ sách nào",
+      "đang mượn",
+      "quá hạn",
+      "giữ sách",
+      "còn sách chưa trả",
+      "tôi còn giữ sách không",
+      "tôi còn cuốn nào chưa trả",
+      "có sách nào tôi chưa trả không",
+      "tôi có đang mượn sách nào không",
+      "sách chưa hoàn trả",
+      "tôi còn mượn sách không",
+      "sách nào chưa trả",
+      "tôi có bị trễ hạn không",
+      "còn nợ sách",
+      "tôi chưa trả sách nào",
+    ],
+  };
+
+  for (const intent in intents) {
+    if (intents[intent].some((keyword) => lower.includes(keyword))) {
+      return intent;
+    }
+  }
+
+  return "none";
+}
+// ===== Trả về thông tin người dùng dựa trên mssv =====
+const getStudentInfoByMSSV = async (mssv) => {
+  try {
+    const snapshot = await get(ref(rtdb, "users"));
+    if (!snapshot.exists()) {
+      return `❌ Không tìm thấy sinh viên nào với MSSV "${mssv}".`;
+    }
+
+    const users = snapshot.val();
+
+    for (const uid in users) {
+      const user = users[uid];
+      if (user.mssv?.toUpperCase() === mssv.toUpperCase()) {
+        return `🧑‍🎓 Thông tin tài khoản:
+• Họ tên: ${user.username}
+• MSSV: ${user.mssv}
+• Lớp: ${user.class}
+• Email: ${user.email}`;
+      }
+    }
+
+    return `❌ Không tìm thấy sinh viên nào với MSSV "${mssv}".`;
+  } catch (error) {
+    console.error("Lỗi truy vấn thông tin sinh viên:", error);
+    return "⚠️ Đã xảy ra lỗi khi truy vấn thông tin sinh viên.";
+  }
+};
+
+// ===== KẾT THÚC HÀM getStudentInfoByMSSV =====
+
+// Hàm đếm tổng số sách đã mượn và liệt kê sách đang mượn
+async function countBooksBorrowed(mssv) {
+  try {
+    const snapshot = await get(ref(rtdb, "history"));
+    if (!snapshot.exists()) {
+      return "Không tìm thấy dữ liệu lịch sử mượn sách.";
+    }
+
+    const data = snapshot.val();
+    let total = 0;
+    const currentlyBorrowed = [];
+
+    for (const key in data) {
+      const record = data[key];
+
+      if (
+        record.studentCode &&
+        record.studentCode.toUpperCase() === mssv.toUpperCase()
+      ) {
+        total++;
+
+        // Nếu chưa trả thì đưa vào danh sách
+        if (record.status && record.status.toLowerCase() !== "đã trả") {
+          currentlyBorrowed.push(
+            `📘 ${record.bookName} (mượn ngày ${record.borrowDate})`
+          );
+        }
+      }
+    }
+
+    if (total === 0) {
+      return "📚 Bạn chưa mượn cuốn sách nào.";
+    }
+
+    let response = `📖 Bạn đã từng mượn ${total} cuốn sách.`;
+
+    if (currentlyBorrowed.length > 0) {
+      response += `\n\n📕 Những cuốn bạn đang mượn:\n${currentlyBorrowed.join(
+        "\n"
+      )}`;
+    } else {
+      response += `\n\n✅ Hiện bạn không có cuốn nào đang mượn.`;
+    }
+
+    return response;
+  } catch (error) {
+    console.error("❌ Lỗi khi đếm số sách đã mượn:", error);
+    return "⚠️ Đã xảy ra lỗi khi kiểm tra lịch sử mượn sách.";
+  }
+}
+// ===== KẾT THÚC HÀM countBooksBorrowed =====
+
+// Hàm lấy danh sách sách chưa trả theo MSSV
+async function getUnreturnedBooks(mssv) {
+  try {
+    const snapshot = await get(ref(rtdb, "history"));
+    if (!snapshot.exists()) {
+      return "Không tìm thấy dữ liệu lịch sử mượn sách.";
+    }
+
+    const data = snapshot.val();
+    const booksNotReturned = [];
+
+    for (const key in data) {
+      const record = data[key];
+      if (
+        record.studentCode &&
+        record.studentCode.toUpperCase() === mssv.toUpperCase() &&
+        record.status.toLowerCase() !== "đã trả"
+      ) {
+        booksNotReturned.push(
+          `📕 ${record.bookName} (Mượn ngày ${record.borrowDate})`
+        );
+      }
+    }
+
+    if (booksNotReturned.length === 0) {
+      return "✅ Bạn không có sách nào chưa trả.";
+    }
+
+    return `📌 Bạn còn những cuốn này chưa trả nè:\n${booksNotReturned.join(
+      "\n"
+    )}`;
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy danh sách sách chưa trả:", error);
+    return "⚠️ Đã xảy ra lỗi khi kiểm tra sách chưa trả.";
+  }
+}
