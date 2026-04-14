@@ -6,59 +6,22 @@ author_profile: true
 redirect_from:
   - /resume
 ---
+## Hoc van
+**Hoc vien Cong nghe Buu chinh Vien thong (PTIT)**
+- Nganh: Internet of Things
+- Thoi gian: 2023 - 2026
+- GPA: 3.2 / 4.0
 
-{% include base_path %}
+## Ky nang ky thuat
+| Ky nang | Muc do | Chi tiet |
+|---------|--------|----------|
+| C/C++ (Arduino) | Trung binh | Firmware, cam bien, Serial |
+| Python | Co ban | matplotlib, pandas |
+| Git/GitHub | Trung binh | Branch, merge, PR |
+| Java | Co ban | Javaspring va web |
+| HTML, CSS, JS | Thanh thao | Lap trinh web |
 
-Education
-======
-* Ph.D in Version Control Theory, GitHub University, 2018 (expected)
-* M.S. in Jekyll, GitHub University, 2014
-* B.S. in GitHub, GitHub University, 2012
+## Du an
+- **Arduino LM35 Temperature Monitor** - Mon Mang Cam Bien
+- **Quan ly thu vien thong minh voi Arduino va Web** - Nghien cuu khoa hoc 2025 
 
-Work experience
-======
-* Spring 2024: Academic Pages Collaborator
-  * GitHub University
-  * Duties includes: Updates and improvements to template
-  * Supervisor: The Users
-
-* Fall 2015: Research Assistant
-  * GitHub University
-  * Duties included: Merging pull requests
-  * Supervisor: Professor Hub
-
-* Summer 2015: Research Assistant
-  * GitHub University
-  * Duties included: Tagging issues
-  * Supervisor: Professor Git
-  
-Skills
-======
-* Skill 1
-* Skill 2
-  * Sub-skill 2.1
-  * Sub-skill 2.2
-  * Sub-skill 2.3
-* Skill 3
-
-Publications
-======
-  <ul>{% for post in site.publications reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Talks
-======
-  <ul>{% for post in site.talks reversed %}
-    {% include archive-single-talk-cv.html  %}
-  {% endfor %}</ul>
-  
-Teaching
-======
-  <ul>{% for post in site.teaching reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Service and leadership
-======
-* Currently signed in to 43 different slack teams
