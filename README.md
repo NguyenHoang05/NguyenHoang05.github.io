@@ -38,10 +38,10 @@
 ### 3. Đưa thay đổi lên GitHub
 Sau khi sửa nội dung trên máy tính, chạy các lệnh sau trong terminal (Git Bash) tại thư mục dự án:
 
-```bash
+ [```bash
 git add .
 git commit -m "mô tả thay đổi"
-git push origin main
+git push origin main]
 
 ## Liên hệ
 - Email: [nguyenhoang08052004@gmail.com]
